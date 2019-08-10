@@ -15,7 +15,7 @@
 </p>
 
 ## Description
-<p align=justify>This project aims to implement a misto graph that simulates the popular waze app.
+<p align=justify>This project aims to implement a mixed graph that simulates the popular waze app.
 Waze is a real-time traffic application and GPS-assisted navigation.</p>
 
 <p align=justify>What's so cool about Wazescheme?</p>
