@@ -1,7 +1,7 @@
 #lang racket/gui
 (require 2htdp/image)
 
-;----METHODS----;
+;----USEFUL METHODS----;
 
 ;Blank bitmap for resize
 (define bitmap-blank
@@ -94,20 +94,20 @@
 
 ; City select screen
 (define citySelectScreen (new frame% [label "Wazecheme"]
-                   [width 1000]
-                   [height 800]
-                   [style '(no-resize-border)]))
+                                     [width 1000]
+                                     [height 800]
+                                     [style '(no-resize-border)]))
 
 ; City select panels
 (define selectPanel_left (new panel% [parent citySelectScreen]
-                             [border 0]
-                             [spacing 0]
-                             [alignment '(center center)]))
+                                     [border 0]
+                                     [spacing 0]
+                                     [alignment '(center center)]))
 
 (define selectPanel_right (new panel% [parent citySelectScreen]
-                             [border 0]
-                             [spacing 0]
-                             [alignment '(center center)]))
+                                      [border 0]
+                                      [spacing 0]
+                                      [alignment '(center center)]))
 
 ; Draws menu elements in canvas
 (define (drawSelect_left canvas dc)
@@ -120,10 +120,10 @@
 
 ; Menu canvas
 (define selectCanvas_left (new canvas% [parent selectPanel_left]
-                                [paint-callback drawSelect_left]))
+                                       [paint-callback drawSelect_left]))
 
 (define selectCanvas_right (new canvas% [parent selectPanel_right]
-                                [paint-callback drawSelect_right]))
+                                        [paint-callback drawSelect_right]))
 
 ; Changes screen to city 1
 (define (toCity1)
@@ -133,7 +133,7 @@
 ; Changes screen to city 2
 (define (toCity2)
   (send citySelectScreen show #f)
-  (send city2Screen show #t))
+  (send customCityScreen show #t))
 
 
 ; To city 1 button
@@ -152,82 +152,225 @@
 
 ; City 1 screen
 (define city1Screen (new frame% [label "Wazecheme"]
-                   [width 1000]
-                   [height 800]
-                   [style '(no-resize-border)]))
+                                [width 1000]
+                                [height 800]
+                                [style '(no-resize-border)]))
 
 ; City 1 panel
 (define city1Panel (new panel% [parent city1Screen]
-                             [border 0]
-                             [spacing 0]
-                             [alignment '(center center)]))
+                               [border 0]
+                               [spacing 0]
+                               [alignment '(right center)]))
 
 ; Draws city 1 elements in canvas
 (define (drawCity1 canvas dc)
   (send dc set-scale 2 2)
-  (send dc draw-bitmap (bitmap-scale arcadiabay_map 0.5) 0 0))
+  (send dc draw-bitmap (bitmap-scale arcadiabay_map 0.4) 0 0))
 
-; City 1 canvas
+; City 1 canvas and drawing context
 (define city1Canvas (new canvas% [parent city1Panel]
-                                [paint-callback drawCity1]))
+                                 [paint-callback drawCity1]))
+
+(define city1dc (send city1Canvas get-dc))
+
+; Calculate Button
+(new button% [parent city1Panel]
+             [label "Calculate"]
+             [callback (lambda (button event)
+                         (drawLines))])
 
 ; Back to menu button
-(new button% [parent city1Screen]
+(new button% [parent city1Panel]
              [label "Back"]
              [callback (lambda (button event)
                          (toCitySelectScreen_fromCity1))])
+
+; Draws lines
+(define (drawLines)
+  (send city1dc draw-line 0 0 100 100))
 
 ; Changes screen to city select
 (define (toCitySelectScreen_fromCity1)
   (send city1Screen show #f)
   (send citySelectScreen show #t))
 
-;-------------------------Hyrule-------------------------;
+;-------------------------Custom City-------------------------;
 
-; City 2 screen
-(define city2Screen (new frame% [label "Wazecheme"]
-                   [width 1000]
-                   [height 800]
-                   [style '(no-resize-border)]))
+;----VARIABLES----;
 
-; City 2 panel
-(define city2Panel (new panel% [parent city2Screen]
-                             [border 0]
-                             [spacing 0]
-                             [alignment '(center center)]))
+(define nodeList '())
+(define connectionList '())
 
-; Draws city 2 elements in canvas
-(define (drawCity2 canvas dc)
-  (send dc set-scale 2 2)
-  (send dc draw-bitmap (bitmap-scale hyrule_map 0.45) 0 0))
+; Custom City screen and panel
+(define customCityScreen (new frame% [label "Wazecheme"]
+                                     [width 1000]
+                                     [height 800]
+                                     [style '(no-resize-border)]))
 
-; City 2 canvas
-(define city2Canvas (new canvas% [parent city2Panel]
-                                [paint-callback drawCity2]))
+(define customCityPanel (new panel% [parent customCityScreen]
+                                    [border 0]
+                                    [spacing 0]
+                                    [alignment '(center center)]))
+
+; Draw initial Custom City elements
+(define (drawCustomCity canvas dc)
+  (send dc set-scale 2 2))
+  ;(send dc draw-bitmap (bitmap-scale hyrule_map 0.45) 0 0))
 
 
-; Back to menu button
-(new button% [parent city2Screen]
-             [label "Back"]
+; Custom City canvas and drawing context
+(define customCityCanvas (new canvas% [parent customCityPanel]
+                                      [paint-callback drawCustomCity]))
+
+(define customCityDC (send customCityCanvas get-dc))
+
+
+;----METHODS----;
+
+
+; Check if node number is repeated
+(define (checkRepeatedNodes n)
+  (checkRepeatedNodes_aux n nodeList)
+  (send addNode_entry set-value ""))
+
+(define (checkRepeatedNodes_aux n list)
+  (cond ((equal? n "") #f)
+        ((null? list) (drawNode n))
+        (else (cond ((equal? (car (car list)) n) #f)
+                    (else (checkRepeatedNodes_aux n (cdr list)))))))
+
+; Draws all connections in list
+(define (drawAllConnections list)
+  (+ 2 2))
+
+; Draws all nodes in list
+(define (drawAllNodes list)
+  (+ 2 2))
+
+; Draws connection between two graphical nodes (CONNECT NODES IN GRAPH)
+(define (drawConnection n1 n2 weight isBidirectional)
+  (let* ([p1 (getPoint n1)]
+         [p2 (getPoint n2)]
+         [p1x (send p1 get-x)]
+         [p1y (send p1 get-y)]
+         [p2x (send p2 get-x)]
+         [p2y (send p2 get-y)]
+         [middlePoint (getMiddlePoint p1x p1y p2x p2y)]
+         [midX (send middlePoint get-x)]
+         [midY (send middlePoint get-y)])
+    (set! connectionList (append connectionList (list (list n1 n2 weight isBidirectional))))
+    (send customCityDC set-pen blue-pen)
+    (send customCityDC draw-line (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5))
+    (send customCityDC set-pen black-pen)
+    (send customCityDC draw-text weight (- midX 10) (- midY 10))))
+
+; Draws node in UI (ADD NODE TO GRAPH)
+(define (drawNode n)
+  (let* ([x (random 470)]
+         [y (random 280)]
+         [point (make-object point% x y)])
+  (send customCityDC set-brush gold-brush)
+  (send customCityDC set-pen gold-pen)
+  (send customCityDC draw-ellipse x y 10 10)
+  (send customCityDC draw-text n x (- y 15))
+  (set! nodeList (append nodeList (list (list n point))))))
+
+; Gets point% object of middle point
+(define (getMiddlePoint p1x p1y p2x p2y)
+  (let* ([resultX (/ (+ p1x p2x) 2)]
+         [resultY (/ (+ p1y p2y) 2)])
+    (make-object point% resultX resultY)))
+
+; Gets point% object from node name
+(define (getPoint n)
+  (getPoint_aux n nodeList))
+
+(define (getPoint_aux n list)
+  (cond ((null? list) #f)
+        ((equal? (car (car list)) n) (car (cdr (car list))))
+        (else (getPoint_aux n (cdr list)))))
+
+; Redraws graph
+(define (redrawGraph)
+  (drawAllNodes nodeList)
+  (drawAllConnections connectionList))
+
+;----UI ELEMENTS----;
+
+(define addNode_entry (new text-field%
+                      (label "Node number")
+                      (parent customCityScreen)
+                      (init-value "")))
+
+(new button% [parent customCityScreen]
+             [label "Add Node"]
              [callback (lambda (button event)
-                         (toCitySelectScreen_fromCity2))])
+                       (checkRepeatedNodes (send addNode_entry get-value)))])
 
-(define (toCitySelectScreen_fromCity2)
-  (send city2Screen show #f)
-  (send citySelectScreen show #t))
+(define connectOrigin_entry (new text-field%
+                            (label "Origin")
+                            (parent customCityScreen)
+                            (init-value "")))
+
+(define connectDestination_entry (new text-field%
+                                 (label "Destination")
+                                 (parent customCityScreen)
+                                 (init-value "")))
+
+(define connectWeight_entry (new text-field%
+                            (label "Weight/Distance")
+                            (parent customCityScreen)
+                            (init-value "")))
+
+(define isBidirectional (new check-box%
+                        (parent customCityScreen)
+                        (label "Bidirectional?")
+                        (value #f)))
+
+(new button% [parent customCityScreen]
+             [label "Connect"]
+             [callback (lambda (button event)
+                       (drawConnection (send connectOrigin_entry get-value)
+                                       (send connectDestination_entry get-value)
+                                       (send connectWeight_entry get-value)
+                                       (send isBidirectional get-value))
+                       (send connectOrigin_entry set-value "")
+                       (send connectDestination_entry set-value "")
+                       (send connectWeight_entry set-value "")
+                       (send isBidirectional set-value #f))])
+
+(new button% [parent customCityScreen]
+             [label "Find route"]
+             [callback (lambda (button event)
+                         (redrawGraph))])
 
 ;-------------------------General-------------------------;
   
 ;----VARIABLES----;
-  
-(define transparent-brush
+
+(define black-pen
+  (new pen%
+       [color "black"]
+       [width 2]))
+
+(define blue-pen
+  (new pen%
+       [color "blue"]
+       [width 2]))
+
+(define gold-brush
   (new brush%
-       [style 'transparent]))
+       [color "gold"]))
 
 (define gold-pen
   (new pen%
        [color "gold"]
-       [width 8]))
+       [width 2]))
+
+(define transparent-brush
+  (new brush%
+       [style 'transparent]))
+
 
 ;----ACTIONS----;
 
