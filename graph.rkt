@@ -55,7 +55,7 @@
           ((equal? node (caar direct-ngbs))
             #t)
           (else
-            (neighbors-aux (cdr direct-ngbs)))))
+            (neighbors-aux node (cdr direct-ngbs)))))
 
 ;; (get-neighbours node graph)
 ;; Returns all neighbors of a given node
@@ -101,4 +101,14 @@
           ((equal? node (caar direct-ngbs))
             (cadar direct-ngbs))
           (else
-            (neighbors-aux (cdr direct-ngbs)))))
+            (wbn-aux node (cdr direct-ngbs)))))
+
+;; (path-weight path graph)
+;; Returns the weight of a given path
+
+> (define (path-weight path graph)
+    (cond ((<= (length path) 1)
+            0)
+          (else
+            (+ (weight-btw-nodes (car path) (cadr path) graph)
+                (path-weight (cdr path) graph)))))
