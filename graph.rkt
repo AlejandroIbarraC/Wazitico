@@ -1,3 +1,6 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-advanced-reader.ss" "lang")((modname graph) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
 #|------------------------------------------------------------------------------
                     WAZESCHEME MAP IMPLEMENTED AS A GRAPH
 
@@ -22,4 +25,46 @@
 
   Developed by @estalvgs1999
 ------------------------------------------------------------------------------|#
-# lang racket
+
+(define graph
+    '(
+     (a ((b 5) (c 8)))
+     (b ((c 6) (d 7)))
+     (c ((a 9) (d 2)))
+     (d ((b 8) (a 1)))
+     )
+)
+
+;; (solution? end path)
+;; Indicates if a given path is a solution for the graph
+> (define (solution? end path)
+    (equal? end (car path)))
+
+;; (neighbors? node1 node2 graph)
+;; Indicate if two nodes are neighbors
+> (define (neighbours? node1 node2 graph)
+    (cond ((null? graph)
+            #f)
+          ((equal? node1 (caar graph))
+            (neighbours-aux node2 (cadar graph)))
+          (else
+            (neighbours? node1 node2 (cdr graph)))))
+
+> (define (neighbours-aux node options)
+    (cond ((null? options)
+            #f )
+          ((equal? node (caar options))
+            #t)
+          (else
+            (neighbours-aux (cdr options)))))
+
+;; (get-neighbours node graph)
+;; Returns all neighbors of a given node
+
+> (define (get-neighbours node graph)
+    (cond ((null? graph)
+            '())
+          ((equal? node (caar graph))
+            (cadar graph))
+          (else
+            (get-neighbours node (cdr graph)))))
