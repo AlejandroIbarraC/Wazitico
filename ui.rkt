@@ -38,7 +38,7 @@
 (define arcadiabay_map (make-object bitmap% "assets/maps/arcadiabay_map.png"))
 (define background (make-object bitmap% "assets/background.png"))
 (define hyruleButtonIcon (make-object bitmap% "assets/hyrule_button.png"))
-(define hyrule_map (make-object bitmap% "assets/maps/hyrule_map.png"))
+(define customcity_map (make-object bitmap% "assets/maps/customcity_map.png"))
 (define logo_namePic (make-object bitmap% "assets/logo_name.png"))
 (define logoPic (make-object bitmap% "assets/logo.png"))
 (define namePic (make-object bitmap% "assets/name.png"))
@@ -200,6 +200,7 @@
 
 (define nodeList '())
 (define connectionList '())
+(define testRoute '(("1" "2" "3") ("1" "4" "3")))
 
 ; Custom City screen and panel
 (define customCityScreen (new frame% [label "Wazecheme"]
@@ -214,8 +215,8 @@
 
 ; Draw initial Custom City elements
 (define (drawCustomCity canvas dc)
-  (send dc set-scale 2 2))
-  ;(send dc draw-bitmap (bitmap-scale hyrule_map 0.45) 0 0))
+  (send dc set-scale 2 2)
+  (send dc draw-bitmap (bitmap-scale customcity_map 0.25) 0 0))
 
 
 ; Custom City canvas and drawing context
@@ -241,11 +242,24 @@
 
 ; Draws all connections in list
 (define (drawAllConnections list)
-  (+ 2 2))
+  (cond ((null? list) #f)
+        (else (let* ([currentConnection (car list)]
+                     [currentN1 (car currentConnection)]
+                     [currentN2 (car (cdr currentConnection))]
+                     [currentWeight (car (cdr (cdr currentConnection)))]
+                     [currentIsBidirectional (car (cdr (cdr (cdr currentConnection))))])
+               (redrawConnection currentN1 currentN2 currentWeight currentIsBidirectional)
+               (drawAllConnections (cdr list))))))
 
 ; Draws all nodes in list
 (define (drawAllNodes list)
-  (+ 2 2))
+  (cond ((null? list) #f)
+        (else (let* ([currentNode (car (car list))]
+                     [currentPoint (getPoint currentNode)]
+                     [currentX (send currentPoint get-x)]
+                     [currentY (send currentPoint get-y)])
+              (drawNodeInPos currentNode currentX currentY)
+              (drawAllNodes (cdr list))))))
 
 ; Draws connection between two graphical nodes (CONNECT NODES IN GRAPH)
 (define (drawConnection n1 n2 weight isBidirectional)
@@ -275,11 +289,48 @@
   (send customCityDC draw-text n x (- y 15))
   (set! nodeList (append nodeList (list (list n point))))))
 
+; Draws node in UI in specific position
+(define (drawNodeInPos n x y)
+  (let* ([point (make-object point% x y)])
+  (send customCityDC set-brush gold-brush)
+  (send customCityDC set-pen gold-pen)
+  (send customCityDC draw-ellipse x y 10 10)
+  (send customCityDC draw-text n x (- y 15))))
+
+; Draws single route
+(define (drawRoute route isShortest)
+  (let* ([n1 (car route)]
+         [nRoute (cdr route)])
+  (cond ((null? nRoute) #f)
+        (else (let* ([n2 (car nRoute)])
+              (drawSimpleConnection n1 n2 isShortest)
+              (drawRoute (cdr route) isShortest))))))
+
+; Draws all found routes
+(define (drawRoutes routeList isShortest)
+  (cond ((null? routeList) #f)
+        (else (drawRoute (car routeList) isShortest)
+              (drawRoutes (cdr routeList) #f))))
+
+; Draws connection between two nodes without weight or bidirectionality
+; Used to draw found routes
+(define (drawSimpleConnection n1 n2 isShortest)
+  (let* ([p1 (getPoint n1)]
+         [p2 (getPoint n2)]
+         [p1x (send p1 get-x)]
+         [p1y (send p1 get-y)]
+         [p2x (send p2 get-x)]
+         [p2y (send p2 get-y)]) 
+  (send customCityDC set-pen green-pen)
+  (cond ((equal? isShortest #t) (send customCityDC set-pen gold-pen)))
+  (send customCityDC draw-line (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5))
+  (send customCityDC set-pen black-pen)))
+
 ; Gets point% object of middle point
 (define (getMiddlePoint p1x p1y p2x p2y)
   (let* ([resultX (/ (+ p1x p2x) 2)]
          [resultY (/ (+ p1y p2y) 2)])
-    (make-object point% resultX resultY)))
+  (make-object point% resultX resultY)))
 
 ; Gets point% object from node name
 (define (getPoint n)
@@ -290,8 +341,25 @@
         ((equal? (car (car list)) n) (car (cdr (car list))))
         (else (getPoint_aux n (cdr list)))))
 
+; Redraws connection between two graphical nodes
+(define (redrawConnection n1 n2 weight isBidirectional)
+  (let* ([p1 (getPoint n1)]
+         [p2 (getPoint n2)]
+         [p1x (send p1 get-x)]
+         [p1y (send p1 get-y)]
+         [p2x (send p2 get-x)]
+         [p2y (send p2 get-y)]
+         [middlePoint (getMiddlePoint p1x p1y p2x p2y)]
+         [midX (send middlePoint get-x)]
+         [midY (send middlePoint get-y)])
+  (send customCityDC set-pen blue-pen)
+  (send customCityDC draw-line (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5))
+  (send customCityDC set-pen black-pen)
+  (send customCityDC draw-text weight (- midX 10) (- midY 10))))
+
 ; Redraws graph
 (define (redrawGraph)
+  (send customCityDC draw-bitmap (bitmap-scale customcity_map 0.25) 0 0)
   (drawAllNodes nodeList)
   (drawAllConnections connectionList))
 
@@ -337,12 +405,15 @@
                        (send connectOrigin_entry set-value "")
                        (send connectDestination_entry set-value "")
                        (send connectWeight_entry set-value "")
-                       (send isBidirectional set-value #f))])
+                       (send isBidirectional set-value #f)
+                       (drawAllNodes nodeList))])
 
 (new button% [parent customCityScreen]
              [label "Find route"]
              [callback (lambda (button event)
-                         (redrawGraph))])
+                         (redrawGraph)
+                         (drawRoutes testRoute #t)
+                         (drawAllNodes nodeList))])
 
 ;-------------------------General-------------------------;
   
@@ -365,7 +436,12 @@
 (define gold-pen
   (new pen%
        [color "gold"]
-       [width 2]))
+       [width 3]))
+
+(define green-pen
+  (new pen%
+       [color "green"]
+       [width 3]))
 
 (define transparent-brush
   (new brush%
