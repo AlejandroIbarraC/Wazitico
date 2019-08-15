@@ -12,11 +12,7 @@
     * extend - Find new paths from a certain path
     * weight-btw-nodes - Returns the weight between two nodes
     * path-weight - Returns the weight of a given path
-    * node? - Look for a node in a graph and if it finds it returns its neighbors
-    * DFS - Search for a route by searching in depth
-    * BFS - Search for a route by depth search by width
-    * DFS-ALL - Search all paths by DFS
-    * BFS-ALL - Search all paths by BFS
+    * node? - Check if a node is part of a graph
 
   The functions implemented were inspired by the book: "Introducción a la
   programación en Scheme"(José E. Helio Guzmán)
@@ -25,14 +21,12 @@
 ------------------------------------------------------------------------------|#
 #lang racket
 
-(define graph
-    '(
-     (a ((b 5) (c 8)))
-     (b ((c 6) (d 7)))
-     (c ((a 9) (d 2)))
-     (d ((b 8) (a 1)))
-     )
-)
+(provide solution?
+         neighbors?
+         get-neighbors
+         extend
+         weight-btw-nodes
+         path-weight)
 
 ;; (solution? end path)
 ;; Indicates if a given path is a solution for the graph
@@ -57,15 +51,27 @@
           (else
             (neighbors-aux node (cdr direct-ngbs)))))
 
-;; (get-neighbours node graph)
-;; Returns all neighbors of a given node
-> (define (get-neighbors node graph)
+;; (node? node graph)
+;; Check if a node is part of a graph and returns his neighbors
+> (define (node? node graph)
     (cond ((null? graph)
             '())
           ((equal? node (caar graph))
-            (cadar graph))
+            (cadar graph)) ;; -> ( (ng1 w1) (ng2 w2) ... (ngN wN) )
           (else
-            (get-neighbors node (cdr graph)))))
+            (node? node (cdr graph)))))
+
+;; (get-neighbours node graph)
+;; Returns all neighbors of a given node
+> (define (get-neighbors node graph)
+    (neighbors-to-list (node? node graph) '()))
+
+> (define (neighbors-to-list neighbors result)
+    (cond ((null? neighbors)
+            result) ;; ->  (ng1 ng2 ... ngN)
+          (else
+            (neighbors-to-list (cdr neighbors)
+                          (append result (list (caar neighbors)))))))
 
 ;; (extend path graph)
 ;; Find new paths from a certain path
@@ -82,7 +88,7 @@
             (extend-aux (cdr neighbors) result path))
           (else
             (extend-aux (cdr neighbors)
-            (append result (list(list* (caar neighbors) path)))
+            (append result (list(list* (car neighbors) path)))
             path ))))
 
 ;; (weight-btw-nodes node1 node2 graph)
@@ -105,7 +111,6 @@
 
 ;; (path-weight path graph)
 ;; Returns the weight of a given path
-
 > (define (path-weight path graph)
     (cond ((<= (length path) 1)
             0)
