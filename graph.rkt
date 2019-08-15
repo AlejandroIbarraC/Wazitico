@@ -42,29 +42,29 @@
 
 ;; (neighbors? node1 node2 graph)
 ;; Indicate if two nodes are neighbors
-> (define (neighbours? node1 node2 graph)
+> (define (neighbors? node1 node2 graph)
     (cond ((null? graph)
             #f)
           ((equal? node1 (caar graph))
-            (neighbours-aux node2 (cadar graph)))
+            (neighbors-aux node2 (cadar graph)))
           (else
-            (neighbours? node1 node2 (cdr graph)))))
+            (neighbors? node1 node2 (cdr graph)))))
 
-> (define (neighbours-aux node options)
+> (define (neighbors-aux node options)
     (cond ((null? options)
             #f )
           ((equal? node (caar options))
             #t)
           (else
-            (neighbours-aux (cdr options)))))
+            (neighbors-aux (cdr options)))))
 
 ;; (get-neighbours node graph)
 ;; Returns all neighbors of a given node
 
-> (define (get-neighbours node graph)
+> (define (get-neighbors node graph)
     (cond ((null? graph)
             '())
           ((equal? node (caar graph))
             (cadar graph))
           (else
-            (get-neighbours node (cdr graph)))))
+            (get-neighbors node (cdr graph)))))
