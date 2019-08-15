@@ -1,6 +1,4 @@
-;; The first three lines of this file were inserted by DrRacket. They record metadata
-;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-advanced-reader.ss" "lang")((modname graph) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
+#lang racket
 #|------------------------------------------------------------------------------
                     WAZESCHEME MAP IMPLEMENTED AS A GRAPH
 
@@ -50,13 +48,13 @@
           (else
             (neighbors? node1 node2 (cdr graph)))))
 
-> (define (neighbors-aux node options)
-    (cond ((null? options)
+> (define (neighbors-aux node direct-ngbs)
+    (cond ((null? direct-ngbs)
             #f )
-          ((equal? node (caar options))
+          ((equal? node (caar direct-ngbs))
             #t)
           (else
-            (neighbors-aux (cdr options)))))
+            (neighbors-aux (cdr direct-ngbs)))))
 
 ;; (get-neighbours node graph)
 ;; Returns all neighbors of a given node
@@ -68,3 +66,22 @@
             (cadar graph))
           (else
             (get-neighbors node (cdr graph)))))
+
+;; (extend path graph)
+;; Find new paths from a certain path
+;; Check if the element exists in the partial route, to avoid cyclical evaluations
+
+> (define (extend path graph)
+    (extend-aux (get-neighbors (car path) graph) '() path))
+
+> (define (extend-aux neighbors result path)
+    (cond ((null? neighbors)
+            result)
+          ;; Check if the element exists in the partial route, to avoid
+          ;; cyclical evaluations
+          ((member (car neighbors) path)
+            (extend-aux (cdr neighbors) result path))
+          (else
+            (extend-aux (cdr neighbors)
+            (append result (list(list* (caar neighbors) path)))
+            path ))))
