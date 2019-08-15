@@ -1,4 +1,3 @@
-#lang racket
 #|------------------------------------------------------------------------------
                     WAZESCHEME MAP IMPLEMENTED AS A GRAPH
 
@@ -19,10 +18,12 @@
     * DFS-ALL - Search all paths by DFS
     * BFS-ALL - Search all paths by BFS
 
-  The functions implemented were inspired by the book: "Introducción a la programación en Scheme"(José E. Helio Guzmán)
+  The functions implemented were inspired by the book: "Introducción a la
+  programación en Scheme"(José E. Helio Guzmán)
 
   Developed by @estalvgs1999
 ------------------------------------------------------------------------------|#
+#lang racket
 
 (define graph
     '(
@@ -58,7 +59,6 @@
 
 ;; (get-neighbours node graph)
 ;; Returns all neighbors of a given node
-
 > (define (get-neighbors node graph)
     (cond ((null? graph)
             '())
@@ -70,7 +70,6 @@
 ;; (extend path graph)
 ;; Find new paths from a certain path
 ;; Check if the element exists in the partial route, to avoid cyclical evaluations
-
 > (define (extend path graph)
     (extend-aux (get-neighbors (car path) graph) '() path))
 
@@ -85,3 +84,21 @@
             (extend-aux (cdr neighbors)
             (append result (list(list* (caar neighbors) path)))
             path ))))
+
+;; (weight-btw-nodes node1 node2 graph)
+;; Returns the weight between two nodes
+> (define (weight-btw-nodes node1 node2 graph)
+    (cond ((null? graph)
+            0)
+          ((equal? node1 (caar graph))
+            (wbn-aux node2 (cadar graph)))
+          (else
+            (weight-btw-nodes node1 node2 (cdr graph)))))
+
+> (define (wbn-aux node direct-ngbs)
+    (cond ((null? direct-ngbs)
+            0 )
+          ((equal? node (caar direct-ngbs))
+            (cadar direct-ngbs))
+          (else
+            (neighbors-aux (cdr direct-ngbs)))))
