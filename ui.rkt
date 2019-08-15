@@ -1,7 +1,9 @@
 #lang racket/gui
 (require 2htdp/image)
 
+
 ;----USEFUL METHODS----;
+
 
 ;Blank bitmap for resize
 (define bitmap-blank
@@ -25,7 +27,9 @@
                    (send dc draw-bitmap bmp 0 0)
                    (or (send dc get-bitmap) (bitmap-blank)))])]))
 
+
 ;-------------------------Main Menu-------------------------;
+
 
 ; Main menu Screen
 (define menuScreen (new frame% [label "Wazecheme"]
@@ -37,7 +41,7 @@
 (define arcadiabayButtonIcon (make-object bitmap% "assets/arcadiabay_button.png"))
 (define arcadiabay_map (make-object bitmap% "assets/maps/arcadiabay_map.png"))
 (define background (make-object bitmap% "assets/background.png"))
-(define hyruleButtonIcon (make-object bitmap% "assets/hyrule_button.png"))
+(define customcityButtonIcon (make-object bitmap% "assets/customcity_button.png"))
 (define customcity_map (make-object bitmap% "assets/maps/customcity_map.png"))
 (define logo_namePic (make-object bitmap% "assets/logo_name.png"))
 (define logoPic (make-object bitmap% "assets/logo.png"))
@@ -70,7 +74,7 @@
                                 [paint-callback drawMenu]))
 
 (define menuCanvas_bottom (new canvas% [parent menuPanel_bottom]
-                                [paint-callback drawMenu_bottom]))
+                                       [paint-callback drawMenu_bottom]))
 
 ; Control menu frame show with boolean value
 (define (showMenu bool)
@@ -109,7 +113,7 @@
                                       [spacing 0]
                                       [alignment '(center center)]))
 
-; Draws menu elements in canvas
+; Draw elements in canvas
 (define (drawSelect_left canvas dc)
   (send dc set-scale 2 2)
   (send dc draw-bitmap (bitmap-scale selectBackground 0.25) 0 0))
@@ -118,85 +122,95 @@
   (send dc set-scale 2 2)
   (send dc draw-bitmap (bitmap-scale selectBackground 0.25) 0 -197))
 
-; Menu canvas
+; Canvas
 (define selectCanvas_left (new canvas% [parent selectPanel_left]
                                        [paint-callback drawSelect_left]))
 
 (define selectCanvas_right (new canvas% [parent selectPanel_right]
                                         [paint-callback drawSelect_right]))
 
-; Changes screen to city 1
-(define (toCity1)
+; Changes screen to Arcadia Bay
+(define (toArcadiaBay)
   (send citySelectScreen show #f)
-  (send city1Screen show #t))
+  (send arcadiaBayScreen show #t))
 
-; Changes screen to city 2
-(define (toCity2)
+; Changes screen to Custom City
+(define (toCustomCity)
   (send citySelectScreen show #f)
   (send customCityScreen show #t))
 
 
-; To city 1 button
+; To Arcadia Bay button
 (new button% [parent selectPanel_left]
-             [label (bitmap-scale arcadiabayButtonIcon 0.6)]
+             [label (bitmap-scale arcadiabayButtonIcon 0.54)]
              [callback (lambda (button event)
-                         (toCity1))])
+                         (toArcadiaBay))])
 
-; To city 2 button
+; To Custom City button
 (new button% [parent selectPanel_right]
-             [label (bitmap-scale hyruleButtonIcon 0.6)]
+             [label (bitmap-scale customcityButtonIcon 0.6)]
              [callback (lambda (button event)
-                         (toCity2))])
+                         (toCustomCity))])
 
 ;-------------------------Arcadia Bay-------------------------;
 
-; City 1 screen
-(define city1Screen (new frame% [label "Wazecheme"]
-                                [width 1000]
-                                [height 800]
-                                [style '(no-resize-border)]))
+;----VARIABLES FOR INITIALIZATION----;
 
-; City 1 panel
-(define city1Panel (new panel% [parent city1Screen]
-                               [border 0]
-                               [spacing 0]
-                               [alignment '(right center)]))
+; Arcadia Bay screen
+(define arcadiaBayScreen (new frame% [label "Wazecheme"]
+                                     [width 1000]
+                                     [height 800]
+                                     [style '(no-resize-border)]))
 
-; Draws city 1 elements in canvas
-(define (drawCity1 canvas dc)
+; Arcadia Bay panel
+(define arcadiaBayPanel (new panel% [parent arcadiaBayScreen]
+                                    [border 0]
+                                    [spacing 0]
+                                    [alignment '(right center)]))
+
+; Draws Arcadia Bay elements in canvas
+(define (drawArcadiaBay canvas dc)
   (send dc set-scale 2 2)
   (send dc draw-bitmap (bitmap-scale arcadiabay_map 0.4) 0 0))
 
-; City 1 canvas and drawing context
-(define city1Canvas (new canvas% [parent city1Panel]
-                                 [paint-callback drawCity1]))
+; Arcadia Bay canvas and drawing context
+(define arcadiaBayCanvas (new canvas% [parent arcadiaBayPanel]
+                                      [paint-callback drawArcadiaBay]))
 
-(define city1dc (send city1Canvas get-dc))
+(define arcadiaBayDC (send arcadiaBayCanvas get-dc))
+
+
+;----METHODS----;
+
+
+
+
+;----UI ELEMENTS----;
+
 
 ; Calculate Button
-(new button% [parent city1Panel]
+(new button% [parent arcadiaBayPanel]
              [label "Calculate"]
              [callback (lambda (button event)
-                         (drawLines))])
+                         (+ 2 2))])
 
 ; Back to menu button
-(new button% [parent city1Panel]
+(new button% [parent arcadiaBayPanel]
              [label "Back"]
              [callback (lambda (button event)
-                         (toCitySelectScreen_fromCity1))])
-
-; Draws lines
-(define (drawLines)
-  (send city1dc draw-line 0 0 100 100))
+                         (toCitySelectScreen_fromArcadiaBay))])
 
 ; Changes screen to city select
-(define (toCitySelectScreen_fromCity1)
-  (send city1Screen show #f)
+(define (toCitySelectScreen_fromArcadiaBay)
+  (send arcadiaBayScreen show #f)
   (send citySelectScreen show #t))
+
 
 ;-------------------------Custom City-------------------------;
 
-;----VARIABLES----;
+
+;----VARIABLES FOR INITIALIZATION----;
+
 
 (define nodeList '())
 (define connectionList '())
@@ -363,7 +377,9 @@
   (drawAllNodes nodeList)
   (drawAllConnections connectionList))
 
+
 ;----UI ELEMENTS----;
+
 
 (define addNode_entry (new text-field%
                       (label "Node number")
@@ -415,9 +431,12 @@
                          (drawRoutes testRoute #t)
                          (drawAllNodes nodeList))])
 
+
 ;-------------------------General-------------------------;
-  
+
+
 ;----VARIABLES----;
+
 
 (define black-pen
   (new pen%
@@ -449,5 +468,6 @@
 
 
 ;----ACTIONS----;
+
 
 (showMenu #t)
