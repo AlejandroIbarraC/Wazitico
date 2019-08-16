@@ -56,8 +56,7 @@ grafo2
 (set! grafo2 (cons 5 grafo2))
 grafo2
 
-"Funcion que verifica si un elemento pertenece a una lista
-en caso de pertenecer devuelve un booleano #t"
+"Funcion que verifica si un elemento pertenece a una lista"
 >(define(miembro num lista)
    (cond( (null? lista)
           #f)
@@ -90,7 +89,7 @@ o rutas y los elementos que conforman el grafo original"
                   (set! grafo2 (cons (list nodo1 (list nodo2)) grafo2))
                   (set! grafo2 (cons (list nodo2 (list nodo1)) grafo2)))
                 (else
-                 (set! grafo2 (cons (list nodo1 (list nodo2)) grafo2)))))
+                 (set! grafo2 (cons (list nodo1 (list nodo2)) grafo2)))))))
          (else
           "Los elementos no pertenecen al grafo o grafo nulo")))
 
