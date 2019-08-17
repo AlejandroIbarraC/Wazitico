@@ -1,5 +1,6 @@
 #lang racket/gui
 (require 2htdp/image)
+(require racket/draw/arrow)
 
 
 ;----USEFUL METHODS----;
@@ -94,6 +95,7 @@
              [callback (lambda (button event)
                          (toCitySelectScreen))])
 
+
 ;-------------------------City Select-------------------------;
 
 ; City select screen
@@ -156,6 +158,53 @@
 
 ;----VARIABLES FOR INITIALIZATION----;
 
+
+(define arcadiaBay_coordList '((97 80) (151 94) (167 58) (181 78)
+                              (191 54) (310 30) (206 91) (190 115)
+                              (183 125) (207 116) (244 116) (282 111) (181 171)
+                              (218 158) (301 154) (329 157) (171 201) (237 189)
+                              (302 184) (192 220) (233 213) (164 238) (232 241) (222 261)
+                              (435 290)))
+
+(define arcadiaBay_connectionList '(("the lighthouse" "beach/frank" 50 #t)
+                                    ("beach/frank" "water tower" 15 #t)
+                                    ("water tower" "the junkyard" 5 #t)
+                                    ("the junkyard" "junkyard (parking" 5 #t)
+                                    ("water tower" "jefferson" 10 #t)
+                                    ("jefferson" "chuz" 5 #t)
+                                    ("chuz" "church" 3 #t)
+                                    ("church" "two whales diner" 2 #t)
+                                    ("chuz" "price home" 8 #t)
+                                    ("price home" "ale" 6 #t)
+                                    ("ale" "parking lot" 10 #t)
+                                    ("parking lot" "blackwell academy" 5 #t)
+                                    ("parking lot" "ocram" 100 #t)
+                                    ("chuz" "chloe" 15 #t)
+                                    ("two whales diner" "butterfly cove" 10 #t)
+                                    ("butterfly cove" "chloe" 6 #t)
+                                    ("butterfly cove" "blackwell academy" 30 #t)
+                                    ("butterfly cove" "harbor" 6 #t)
+                                    ("harbor" "lumber mill" 8 #t)
+                                    ("harbor" "gas station" 5 #t)
+                                    ("gas station" "esteban" 7 #t)
+                                    ("esteban" "prescott estate" 3 #t)
+                                    ("chloe" "prescott estate" 6 #t)
+                                    ("prescott estate" "ocram" 100 #t)
+                                    ("esteban" "marmota" 1 #t)
+                                    ("marmota" "general store" 5 #t)
+                                    ("marmota" "the barn" 70 #f)
+                                    ("lumber mill" "general store" 16 #t)
+                                    ))
+
+(define arcadiaBay_stringList '("the lighthouse" "beach/frank" "the junkyard" "water tower"
+                              "junkyard (parking)" "wooded area" "jefferson" "church"
+                              "two whales diner" "chuz" "price home" "ale" "butterfly cove"
+                              "chloe" "parking lot" "blackwell academy" "harbor" "prescott estate"
+                              "ocram" "gas station" "esteban" "lumber mill" "marmota" "general store"
+                              "the barn"))
+
+(define arcadiaBay_nodeList '())
+
 ; Arcadia Bay screen
 (define arcadiaBayScreen (new frame% [label "Wazecheme"]
                                      [width 1000]
@@ -171,7 +220,9 @@
 ; Draws Arcadia Bay elements in canvas
 (define (drawArcadiaBay canvas dc)
   (send dc set-scale 2 2)
-  (send dc draw-bitmap (bitmap-scale arcadiabay_map 0.4) 0 0))
+  (send dc draw-bitmap (bitmap-scale arcadiabay_map 0.25) 0 0)
+  (initializeArcadiaBayNodeList arcadiaBay_stringList arcadiaBay_coordList)
+  (drawArcadiaBayNodes arcadiaBay_nodeList))
 
 ; Arcadia Bay canvas and drawing context
 (define arcadiaBayCanvas (new canvas% [parent arcadiaBayPanel]
@@ -182,29 +233,55 @@
 
 ;----METHODS----;
 
+; Draws all Arcadia Bay nodes in list
+(define (drawArcadiaBayNodes list)
+  (cond ((null? list) #f)
+        (else (let* ([currentNode (car (car list))]
+                     [currentPoint (getPoint_arcadiaBay currentNode)]
+                     [currentX (send currentPoint get-x)]
+                     [currentY (send currentPoint get-y)])
+              (drawNodeInPos_arcadiaBay currentNode currentX currentY)
+              (drawArcadiaBayNodes (cdr list))))))
 
+; Draws node in UI in specific position for Arcadia Bay
+(define (drawNodeInPos_arcadiaBay n x y)
+  (let* ([point (make-object point% x y)])
+  (send arcadiaBayDC set-brush gold-brush)
+  (send arcadiaBayDC set-pen gold-pen)
+  (send arcadiaBayDC draw-ellipse x y 3 3)))
+
+; Gets point from string in Arcadia Bay
+(define (getPoint_arcadiaBay n)
+  (getPoint_aux n arcadiaBay_nodeList))
+
+; Initializes Arcadia Bay nodes
+(define (initializeArcadiaBayNodeList stringList coordList)
+  (cond ((null? stringList) #f)
+        (else (let* ([currentString (car stringList)]
+                     [currentPoint (car coordList)]
+                     [currentX (car currentPoint)]
+                     [currentY (cadr currentPoint)]
+                     [point (make-object point% currentX currentY)])
+              (set! arcadiaBay_nodeList (append arcadiaBay_nodeList (list (list currentString point))))
+              (initializeArcadiaBayNodeList (cdr stringList) (cdr coordList))))))
 
 
 ;----UI ELEMENTS----;
 
+(define routeOrigin_entry (new text-field%
+                          (label "Origin")
+                          (parent arcadiaBayScreen)
+                          (init-value "")))
 
-; Calculate Button
-(new button% [parent arcadiaBayPanel]
+(define routeDestination_entry (new text-field%
+                               (label "Destination")
+                               (parent arcadiaBayScreen)
+                               (init-value "")))
+
+(new button% [parent arcadiaBayScreen]
              [label "Calculate"]
              [callback (lambda (button event)
                          (+ 2 2))])
-
-; Back to menu button
-(new button% [parent arcadiaBayPanel]
-             [label "Back"]
-             [callback (lambda (button event)
-                         (toCitySelectScreen_fromArcadiaBay))])
-
-; Changes screen to city select
-(define (toCitySelectScreen_fromArcadiaBay)
-  (send arcadiaBayScreen show #f)
-  (send citySelectScreen show #t))
-
 
 ;-------------------------Custom City-------------------------;
 
@@ -215,6 +292,7 @@
 (define nodeList '())
 (define connectionList '())
 (define testRoute '(("1" "2" "3") ("1" "4" "3")))
+(define customCityGraph '())
 
 ; Custom City screen and panel
 (define customCityScreen (new frame% [label "Wazecheme"]
@@ -288,14 +366,18 @@
          [midY (send middlePoint get-y)])
     (set! connectionList (append connectionList (list (list n1 n2 weight isBidirectional))))
     (send customCityDC set-pen blue-pen)
-    (send customCityDC draw-line (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5))
+    (send customCityDC set-brush blue-brush)
+    (draw-arrow customCityDC (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5) 0 0)
+    (cond ((equal? isBidirectional #t) (draw-arrow customCityDC (+ p2x 5) (+ p2y 5) (+ p1x 5) (+ p1y 5) 0 0)))
     (send customCityDC set-pen black-pen)
-    (send customCityDC draw-text weight (- midX 10) (- midY 10))))
+    (send customCityDC set-text-foreground "blue")
+    (send customCityDC draw-text weight (- midX 10) (- midY 10))
+    (send customCityDC set-text-foreground "black")))
 
 ; Draws node in UI (ADD NODE TO GRAPH)
 (define (drawNode n)
-  (let* ([x (random 470)]
-         [y (random 280)]
+  (let* ([x (random 15 470)]
+         [y (random 15 260)]
          [point (make-object point% x y)])
   (send customCityDC set-brush gold-brush)
   (send customCityDC set-pen gold-pen)
@@ -336,8 +418,9 @@
          [p2x (send p2 get-x)]
          [p2y (send p2 get-y)]) 
   (send customCityDC set-pen green-pen)
-  (cond ((equal? isShortest #t) (send customCityDC set-pen gold-pen)))
-  (send customCityDC draw-line (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5))
+  (cond ((equal? isShortest #t) (and (send customCityDC set-pen brushedGold-pen)
+                                (send customCityDC set-brush gold-brush))))
+  (draw-arrow customCityDC (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5) 0 0)
   (send customCityDC set-pen black-pen)))
 
 ; Gets point% object of middle point
@@ -367,9 +450,12 @@
          [midX (send middlePoint get-x)]
          [midY (send middlePoint get-y)])
   (send customCityDC set-pen blue-pen)
-  (send customCityDC draw-line (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5))
+  (draw-arrow customCityDC (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5) 0 0)
+  (cond ((equal? isBidirectional #t) (draw-arrow customCityDC (+ p2x 5) (+ p2y 5) (+ p1x 5) (+ p1y 5) 0 0)))
   (send customCityDC set-pen black-pen)
-  (send customCityDC draw-text weight (- midX 10) (- midY 10))))
+  (send customCityDC set-text-foreground "blue")
+  (send customCityDC draw-text weight (- midX 10) (- midY 10))
+  (send customCityDC set-text-foreground "black")))
 
 ; Redraws graph
 (define (redrawGraph)
@@ -421,15 +507,13 @@
                        (send connectOrigin_entry set-value "")
                        (send connectDestination_entry set-value "")
                        (send connectWeight_entry set-value "")
-                       (send isBidirectional set-value #f)
-                       (drawAllNodes nodeList))])
+                       (send isBidirectional set-value #f))])
 
 (new button% [parent customCityScreen]
              [label "Find route"]
              [callback (lambda (button event)
                          (redrawGraph)
-                         (drawRoutes testRoute #t)
-                         (drawAllNodes nodeList))])
+                         (drawRoutes testRoute #t))])
 
 
 ;-------------------------General-------------------------;
@@ -443,10 +527,19 @@
        [color "black"]
        [width 2]))
 
+(define blue-brush
+  (new brush%
+       [color "blue"]))
+
 (define blue-pen
   (new pen%
        [color "blue"]
-       [width 2]))
+       [width 3]))
+
+(define brushedGold-pen
+  (new pen%
+       [color (make-object color% 48 91 149)]
+       [width 3]))
 
 (define gold-brush
   (new brush%
@@ -459,8 +552,8 @@
 
 (define green-pen
   (new pen%
-       [color "green"]
-       [width 3]))
+       [color (make-object color% 163 227 142)]
+       [width 2]))
 
 (define transparent-brush
   (new brush%
@@ -470,4 +563,5 @@
 ;----ACTIONS----;
 
 
-(showMenu #t)
+;(showMenu #t)
+(send arcadiaBayScreen show #t)
