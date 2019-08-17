@@ -74,7 +74,7 @@ Review the technical documentation.</p>
 * **Jesús Sandoval** - *Computer Engineering Student* - [@shuzz22260427](https://github.com/shuzz22260427)
 
 We thank the teacher of the course:
-* **Ing. Marco Rivera Meneses** from Programming Languages
+* **Engr. Marco Rivera Meneses** from Programming Languages
 
 ## License
 
