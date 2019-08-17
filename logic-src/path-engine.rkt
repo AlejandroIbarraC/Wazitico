@@ -7,9 +7,6 @@
   The search algorithms implemented are:
     * Deep First Search
     * Breadh First Search
-    * Dijkstra
-    * Floyd
-    * Warshall
 
   The functions implemented were inspired by the book: "Introducción a la
   programación en Scheme"(José E. Helio Guzmán)
