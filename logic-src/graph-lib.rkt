@@ -26,7 +26,9 @@
          get-neighbors
          extend
          weight-btw-nodes
-         path-weight)
+         path-weight
+         member-node?
+         node?)
 
 ;; (solution? end path)
 ;; Indicates if a given path is a solution for the graph
@@ -50,6 +52,16 @@
             #t)
           (else
             (neighbors-aux node (cdr direct-ngbs)))))
+
+;; (node? node graph)
+;; Check if a node is part of a graph and returns his neighbors
+> (define (member-node? node graph)
+    (cond ((null? graph)
+            #f)
+          ((equal? node (caar graph))
+            #t)
+          (else
+            (member-node? node (cdr graph)))))
 
 ;; (node? node graph)
 ;; Check if a node is part of a graph and returns his neighbors

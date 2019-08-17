@@ -11,23 +11,34 @@
 ------------------------------------------------------------------------------|#
 #lang racket
 
-(require "../logic-scr/graph.rkt")
+(require "../logic-src/graph-lib.rkt")
 (provide apply-fun
-         sort-by-weight)
+         sort-by-weight
+         member?
+)
 
 ;; (apply-fun f list)
 ;; Applies a function to elements of a list
 ;; [ Map equivalent ]
-> (define (apply-fun f list)
+>(define (apply-fun f list)
     (cond ((null? list)
             '())
           (else (cons (f (car list))
                       (apply-fun f (cdr list))))))
 
+;; (member? ele list)
+;; Checks if an element is part of the list
+>(define (member? elem list)
+    (cond ((null? list)
+            #f)
+        ((equal? elem (car list))
+            #t)
+    (else (member? elem (cdr list)))))
+
 ;; (sort-by-weight list graph)
 ;; Order all routes from least to greatest according to your weight.
 ;; Implemented as a quick sort
-(define (sort-by-weight list_ graph)
+>(define (sort-by-weight list_ graph)
   (cond ((null? list_)
           '())
         (else
@@ -35,20 +46,20 @@
                   (list (car list_))
                   (sort-by-weight (greater-than (car list_) (cdr list_) graph) graph)))))
 
-(define (less-than pivot list_ graph)
-  (cond ((null? list_)
-          '())
-        ((> (path-weight pivot graph)
-            (path-weight (car list_) graph))
-          (cons (car list_) (less-than pivot (cdr list_) graph)))
-        (else
-          (less-than pivot (cdr list_) graph))))
+>(define (less-than pivot list_ graph)
+    (cond ((null? list_)
+            '())
+          ((> (path-weight pivot graph)
+              (path-weight (car list_) graph))
+            (cons (car list_) (less-than pivot (cdr list_) graph)))
+          (else
+            (less-than pivot (cdr list_) graph))))
 
-(define (greater-than pivot list_ graph)
-  (cond ((null? list_)
-          '())
-        ((<= (path-weight pivot graph)
-             (path-weight (car list_) graph))
-          (cons (car list_) (greater-than pivot (cdr list_) graph)))
-        (else
-          (greater-than pivot (cdr list_) graph))))
+>(define (greater-than pivot list_ graph)
+    (cond ((null? list_)
+            '())
+          ((<= (path-weight pivot graph)
+               (path-weight (car list_) graph))
+            (cons (car list_) (greater-than pivot (cdr list_) graph)))
+          (else
+            (greater-than pivot (cdr list_) graph))))
