@@ -87,10 +87,10 @@ o rutas y los elementos que conforman el grafo original"
 >(define(conexiones nodo1 nodo2 pesoNodos bidireccional grafo2)
    (cond ( (and (equal? (miembro nodo1 grafo2) #t) (equal? (miembro nodo2 grafo2) #t))
            (cond( (equal? bidireccional #t)
-                  (set! grafo2 (cons (list nodo1 (list nodo2)) grafo2))
-                  (set! grafo2 (cons (list nodo2 (list nodo1)) grafo2)))
+                  (set! grafo2 (cons (list nodo1 (list nodo2 pesoNodos)) grafo2))
+                  (set! grafo2 (cons (list nodo2 (list nodo1 pesoNodos)) grafo2)))
                 (else
-                 (set! grafo2 (cons (list nodo1 (list nodo2)) grafo2)))))
+                 (set! grafo2 (cons (list nodo1 (list nodo2 pesoNodos)) grafo2)))))
          (else
           "Los elementos no pertenecen al grafo o grafo nulo")))
 
@@ -105,9 +105,20 @@ grafo2
 para, con base en los pesos, obtener la distancia mas corta
 entre dos puntos del grafo, ademas de esto se obtienen las rutas
 extra para que el usuario pueda visualizar la diferencia y eficiencia entre rutas"
-">(define(rutas inicio fin grafo)
-   (rutas-aux(list(list ini)) fin grafo '()))
+> (define (DFS start end graph)
+    (cond ((equal? start end)
+            (list start))
+          (else
+            (DFS-aux (list (list start)) end graph))))
 
->(define(rutas-aux rutas fin grafo total)
-   (cond( ("
+> (define (DFS-aux paths end graph)
+    (cond ((null? paths)
+            '())
+          ((equal? end (caar paths))
+            (reverse (car paths)))
+          (else
+            (DFS-aux (append (extend (car paths) graph)
+                             (cdr paths))
+                     end
+                     graph))))
    
