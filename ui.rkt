@@ -166,35 +166,37 @@
                               (302 184) (192 220) (233 213) (164 238) (232 241) (222 261)
                               (435 290)))
 
-(define arcadiaBay_connectionList '(("the lighthouse" "beach/frank" 50 #t)
-                                    ("beach/frank" "water tower" 15 #t)
-                                    ("water tower" "the junkyard" 5 #t)
-                                    ("the junkyard" "junkyard (parking" 5 #t)
-                                    ("water tower" "jefferson" 10 #t)
-                                    ("jefferson" "chuz" 5 #t)
-                                    ("chuz" "church" 3 #t)
-                                    ("church" "two whales diner" 2 #t)
-                                    ("chuz" "price home" 8 #t)
-                                    ("price home" "ale" 6 #t)
-                                    ("ale" "parking lot" 10 #t)
-                                    ("parking lot" "blackwell academy" 5 #t)
-                                    ("parking lot" "ocram" 100 #t)
-                                    ("chuz" "chloe" 15 #t)
-                                    ("two whales diner" "butterfly cove" 10 #t)
-                                    ("butterfly cove" "chloe" 6 #t)
-                                    ("butterfly cove" "blackwell academy" 30 #t)
-                                    ("butterfly cove" "harbor" 6 #t)
-                                    ("harbor" "lumber mill" 8 #t)
-                                    ("harbor" "gas station" 5 #t)
-                                    ("gas station" "esteban" 7 #t)
-                                    ("esteban" "prescott estate" 3 #t)
-                                    ("chloe" "prescott estate" 6 #t)
-                                    ("prescott estate" "ocram" 100 #t)
-                                    ("esteban" "marmota" 1 #t)
-                                    ("marmota" "general store" 5 #t)
-                                    ("marmota" "the barn" 70 #f)
-                                    ("lumber mill" "general store" 16 #t)
+(define arcadiaBay_connectionList '(("the lighthouse" "beach/frank" "50" #t)
+                                    ("beach/frank" "water tower" "15" #t)
+                                    ("water tower" "the junkyard" "5" #t)
+                                    ("the junkyard" "junkyard (parking)" "5" #t)
+                                    ("water tower" "jefferson" "10" #t)
+                                    ("jefferson" "chuz" "5" #t)
+                                    ("chuz" "church" "3" #t)
+                                    ("church" "two whales diner" "2" #t)
+                                    ("chuz" "price home" "8" #t)
+                                    ("price home" "ale" "6" #f)
+                                    ("ale" "parking lot" "10" #t)
+                                    ("parking lot" "blackwell academy" "5" #t)
+                                    ("parking lot" "ocram" "100" #t)
+                                    ("chuz" "chloe" "15" #t)
+                                    ("two whales diner" "butterfly cove" "10" #t)
+                                    ("butterfly cove" "chloe" "6" #t)
+                                    ("butterfly cove" "blackwell academy" "30" #t)
+                                    ("butterfly cove" "harbor" "6" #t)
+                                    ("harbor" "lumber mill" "8" #t)
+                                    ("harbor" "gas station" "5" #t)
+                                    ("gas station" "esteban" "7" #t)
+                                    ("esteban" "prescott estate" "3" #t)
+                                    ("chloe" "prescott estate" "6" #t)
+                                    ("prescott estate" "ocram" "100" #t)
+                                    ("esteban" "marmota" "1" #f)
+                                    ("general store" "marmota" "5" #f)
+                                    ("marmota" "the barn" "70" #f)
+                                    ("lumber mill" "general store" "16" #t)
                                     ))
+
+(define arcadiaBay_graph '())
 
 (define arcadiaBay_stringList '("the lighthouse" "beach/frank" "the junkyard" "water tower"
                               "junkyard (parking)" "wooded area" "jefferson" "church"
@@ -222,7 +224,8 @@
   (send dc set-scale 2 2)
   (send dc draw-bitmap (bitmap-scale arcadiabay_map 0.25) 0 0)
   (initializeArcadiaBayNodeList arcadiaBay_stringList arcadiaBay_coordList)
-  (drawArcadiaBayNodes arcadiaBay_nodeList))
+  (drawArcadiaBayNodes arcadiaBay_nodeList)
+  (drawArcadiaBayConnections arcadiaBay_connectionList))
 
 ; Arcadia Bay canvas and drawing context
 (define arcadiaBayCanvas (new canvas% [parent arcadiaBayPanel]
@@ -242,6 +245,17 @@
                      [currentY (send currentPoint get-y)])
               (drawNodeInPos_arcadiaBay currentNode currentX currentY)
               (drawArcadiaBayNodes (cdr list))))))
+
+; Draws all connections in list
+(define (drawArcadiaBayConnections list)
+  (cond ((null? list) #f)
+        (else (let* ([currentConnection (car list)]
+                     [currentN1 (car currentConnection)]
+                     [currentN2 (car (cdr currentConnection))]
+                     [currentWeight (car (cdr (cdr currentConnection)))]
+                     [currentIsBidirectional (car (cdr (cdr (cdr currentConnection))))])
+               (redrawArcadiaBayConnection currentN1 currentN2 currentWeight currentIsBidirectional)
+               (drawArcadiaBayConnections (cdr list))))))
 
 ; Draws node in UI in specific position for Arcadia Bay
 (define (drawNodeInPos_arcadiaBay n x y)
@@ -264,6 +278,27 @@
                      [point (make-object point% currentX currentY)])
               (set! arcadiaBay_nodeList (append arcadiaBay_nodeList (list (list currentString point))))
               (initializeArcadiaBayNodeList (cdr stringList) (cdr coordList))))))
+
+; Redraws connection between two graphical nodes
+(define (redrawArcadiaBayConnection n1 n2 weight isBidirectional)
+  (let* ([p1 (getPoint_arcadiaBay n1)]
+         [p2 (getPoint_arcadiaBay n2)]
+         [p1x (send p1 get-x)]
+         [p1y (send p1 get-y)]
+         [p2x (send p2 get-x)]
+         [p2y (send p2 get-y)]
+         [middlePoint (getMiddlePoint p1x p1y p2x p2y)]
+         [midX (send middlePoint get-x)]
+         [midY (send middlePoint get-y)])
+  (send arcadiaBayDC set-pen blue-pen_slim)
+  (draw-arrow arcadiaBayDC (+ p1x 1.5) (+ p1y 1.5) (+ p2x 1.5) (+ p2y 1.5) 0 0)
+  (cond ((equal? isBidirectional #t) (draw-arrow arcadiaBayDC (+ p2x 1.5) (+ p2y 1.5) (+ p1x 1.5) (+ p1y 1.5) 0 0)))
+  (send arcadiaBayDC set-pen black-pen)
+  (send arcadiaBayDC set-text-foreground "blue")
+  (send arcadiaBayDC set-font (make-font #:size 6))
+  (send arcadiaBayDC draw-text weight (- midX 5) (- midY 5))
+  (send arcadiaBayDC set-text-foreground "black")))
+
 
 
 ;----UI ELEMENTS----;
@@ -535,6 +570,11 @@
   (new pen%
        [color "blue"]
        [width 3]))
+
+(define blue-pen_slim
+  (new pen%
+       [color "blue"]
+       [width 1]))
 
 (define brushedGold-pen
   (new pen%
