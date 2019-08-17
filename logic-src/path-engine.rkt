@@ -7,9 +7,6 @@
   The search algorithms implemented are:
     * Deep First Search
     * Breadh First Search
-    * Dijkstra
-    * Floyd
-    * Warshall
 
   The functions implemented were inspired by the book: "Introducción a la
   programación en Scheme"(José E. Helio Guzmán)
@@ -18,8 +15,10 @@
 ------------------------------------------------------------------------------|#
 #lang racket
 
-(require "graph.rkt"
-         "../util-fun/util.rkt")
+(require "graph-lib.rkt"
+         "../util-src/util.rkt")
+         
+(provide get-path)
 
 ;; (DFS start end graph)
 ;; Search for a route by searching in depth
@@ -71,23 +70,28 @@
 ;; Search for a route by breadh search first
 ;; * Based on book page 384
 > (define (BFS-ALL start end graph)
-  (cond ((equal? start end)
-          (list start))
-        (else
-          (BFS-ALL-aux (list (list start)) end graph '()))))
+    (cond ((equal? start end)
+            (list start))
+          (else
+            (BFS-ALL-aux (list (list start)) end graph '()))))
 
 > (define (BFS-ALL-aux paths end graph total)
-  (cond ((null? paths)
-          (apply-fun reverse total))
-        ((solution? end (car paths))
-          (BFS-ALL-aux (cdr paths)
-                       end
-                       graph
-                       (cons (car paths) total)))
-        ;; The implementation between DFS and BFS only differs in this line of code
-        (else
-          (BFS-ALL-aux (append (cdr paths)
-                               (extend (car paths) graph))
-                       end
-                       graph
-                       total))))
+    (cond ((null? paths)
+            (apply-fun reverse total))
+          ((solution? end (car paths))
+            (BFS-ALL-aux (cdr paths)
+                         end
+                         graph
+                         (cons (car paths) total)))
+          ;; The implementation between DFS and BFS only differs in this line of code
+          (else
+            (BFS-ALL-aux (append (cdr paths)
+                                 (extend (car paths) graph))
+                         end
+                         graph
+                         total))))
+
+;;------------------------------------------------------------------------------
+
+> (define (get-path start end graph)
+      (sort-by-weight (DFS-ALL start end graph) graph))
