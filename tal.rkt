@@ -39,22 +39,25 @@ Esta funcion hace uso de la primitiva set! debido a que
 nuestro grafo es una variable a la cual se le asigna el tipo
 lista"
 
->(define grafo2 '2)
+>(define grafo2 '())
 
->(define(crearGrafo nodo grafo2)
+>(define(crearGrafo nodo)
    (cond ( (null? grafo2)
-           (set! grafo2 (list nodo grafo2)))
+           (set! grafo2 (cons nodo grafo2)))
          (else
           (set! grafo2 (cons nodo grafo2)))))
 
 "Pruebas de la funcion crear grafos por medio
 del uso de la primitiva ;cons; "
->(set! grafo2 (list 3 grafo2))
+(crearGrafo 1)
+(crearGrafo 2)
+(crearGrafo 3)
+(crearGrafo 4)
+(crearGrafo 5)
+(crearGrafo 6)
 grafo2
->(set! grafo2 (cons 4 grafo2))
-grafo2
-(set! grafo2 (cons 5 grafo2))
-grafo2
+
+
 
 "Funcion que verifica si un elemento pertenece a una lista
 en caso de pertenecer devuelve un booleano #t"
@@ -84,7 +87,7 @@ o solo en una direccion.
 Ademas de esto se va a definir el peso(distancia) entre los nodos conectados.
 El resultado de esta funcion es una lista con sublistas que son las conexiones
 o rutas y los elementos que conforman el grafo original"
->(define(conexiones nodo1 nodo2 pesoNodos bidireccional grafo2)
+>(define(conexiones nodo1 nodo2 pesoNodos bidireccional)
    (cond ( (and (equal? (miembro nodo1 grafo2) #t) (equal? (miembro nodo2 grafo2) #t))
            (cond( (equal? bidireccional #t)
                   (set! grafo2 (cons (list nodo1 (list nodo2 pesoNodos)) grafo2))
@@ -94,18 +97,15 @@ o rutas y los elementos que conforman el grafo original"
          (else
           "Los elementos no pertenecen al grafo o grafo nulo")))
 
->(conexiones 1 2 5 #t '(1 2 3 4))
->(define nodox 3)
->(define nodoy 4)
-(set! grafo2 (cons (list nodox (list nodoy)) grafo2))
-(set! grafo2 (cons (list nodoy (list nodox)) grafo2))
+>(conexiones 1 2 5 #t)
+>(conexiones 4 3 2 #f)
 grafo2
 
 "Distancia mas corta entre dos puntos. Esta funcion se usa
 para, con base en los pesos, obtener la distancia mas corta
 entre dos puntos del grafo, ademas de esto se obtienen las rutas
 extra para que el usuario pueda visualizar la diferencia y eficiencia entre rutas"
-> (define (DFS start end graph)
+"> (define (DFS start end graph)
     (cond ((equal? start end)
             (list start))
           (else
@@ -120,5 +120,5 @@ extra para que el usuario pueda visualizar la diferencia y eficiencia entre ruta
             (DFS-aux (append (extend (car paths) graph)
                              (cdr paths))
                      end
-                     graph))))
+                     graph))))"
    
