@@ -17,7 +17,9 @@
 
 (require "graph-lib.rkt"
          "../util-src/util.rkt")
-(provide DFS-)
+         
+(provide get-path)
+
 ;; (DFS start end graph)
 ;; Search for a route by searching in depth
 ;; * Based on book page 382
@@ -88,3 +90,8 @@
                          end
                          graph
                          total))))
+
+;;------------------------------------------------------------------------------
+
+> (define (get-path start end graph)
+      (sort-by-weight (DFS-ALL start end graph) graph))

@@ -110,4 +110,8 @@
 ;; (add-neighbor node1 node2 weight graph)
 ;; Add a neighbor to a node's list of neighbors
 > (define (add-neighbor node1 node2 weight graph)
-      (cons (list node2 weight) (node? node1 graph)))
+      (cond ((member-node? node2 (node? node1 graph))
+              (print "Error 101 - A connection between these nodes already exists")
+              (node? node1 graph))
+      (else
+        (cons (list node2 weight) (node? node1 graph)))))
