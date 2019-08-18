@@ -112,6 +112,7 @@
 > (define (add-neighbor node1 node2 weight graph)
       (cond ((member-node? node2 (node? node1 graph))
               (print "Error 101 - A connection between these nodes already exists")
+              (+ 100 1)
               (node? node1 graph))
       (else
         (cons (list node2 weight) (node? node1 graph)))))

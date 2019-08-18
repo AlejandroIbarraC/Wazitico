@@ -1,9 +1,28 @@
 #lang racket/gui
-(require 2htdp/image)
-(require racket/draw/arrow)
+(require 2htdp/image racket/draw/arrow
+         "logic-src/graph-lib.rkt"
+         "logic-src/graph-maker.rkt"
+         "logic-src/path-engine.rkt"
+         "logic-src/arcadiaBay-graph.rkt")
+
+;-------------------------Startup-------------------------;
+
+;----ACTIONS----;
+
+; Load images
+(define arcadiabayButtonIcon (make-object bitmap% "assets/arcadiabay_button.png"))
+(define arcadiabay_map (make-object bitmap% "assets/maps/arcadiabay_map.png"))
+(define background (make-object bitmap% "assets/background.png"))
+(define customcityButtonIcon (make-object bitmap% "assets/customcity_button.png"))
+(define customcity_map (make-object bitmap% "assets/maps/customcity_map.png"))
+(define logo_namePic (make-object bitmap% "assets/logo_name.png"))
+(define logoPic (make-object bitmap% "assets/logo.png"))
+(define namePic (make-object bitmap% "assets/name.png"))
+(define selectBackground (make-object bitmap% "assets/background_citySelect.png"))
+(define startButtonIcon (make-object bitmap% "assets/start_button.png"))
 
 
-;----USEFUL METHODS----;
+;----METHODS----;
 
 
 ;Blank bitmap for resize
@@ -32,23 +51,14 @@
 ;-------------------------Main Menu-------------------------;
 
 
+;----VARIABLES FOR INITIALIZATION----;
+
+
 ; Main menu Screen
 (define menuScreen (new frame% [label "Wazecheme"]
                    [width 1000]
                    [height 800]
                    [style '(no-resize-border)]))
-
-; Load images
-(define arcadiabayButtonIcon (make-object bitmap% "assets/arcadiabay_button.png"))
-(define arcadiabay_map (make-object bitmap% "assets/maps/arcadiabay_map.png"))
-(define background (make-object bitmap% "assets/background.png"))
-(define customcityButtonIcon (make-object bitmap% "assets/customcity_button.png"))
-(define customcity_map (make-object bitmap% "assets/maps/customcity_map.png"))
-(define logo_namePic (make-object bitmap% "assets/logo_name.png"))
-(define logoPic (make-object bitmap% "assets/logo.png"))
-(define namePic (make-object bitmap% "assets/name.png"))
-(define selectBackground (make-object bitmap% "assets/background_citySelect.png"))
-(define startButtonIcon (make-object bitmap% "assets/start_button.png"))
 
 ; Menu panel
 (define menuPanel (new panel% [parent menuScreen]
@@ -77,6 +87,9 @@
 (define menuCanvas_bottom (new canvas% [parent menuPanel_bottom]
                                        [paint-callback drawMenu_bottom]))
 
+
+;----METHODS----;
+
 ; Control menu frame show with boolean value
 (define (showMenu bool)
   (cond ((equal? bool #t)
@@ -89,7 +102,8 @@
   (send menuScreen show #f)
   (send citySelectScreen show #t))
 
-; Change screen to city selection button
+;----UI ELEMENTS----;
+
 (new button% [parent menuPanel_bottom]
              [label (bitmap-scale startButtonIcon 0.6)]
              [callback (lambda (button event)
@@ -97,6 +111,10 @@
 
 
 ;-------------------------City Select-------------------------;
+
+
+;----VARIABLES FOR INITIALIZATION----;
+
 
 ; City select screen
 (define citySelectScreen (new frame% [label "Wazecheme"]
@@ -124,12 +142,16 @@
   (send dc set-scale 2 2)
   (send dc draw-bitmap (bitmap-scale selectBackground 0.25) 0 -197))
 
-; Canvas
+; Main canvas
 (define selectCanvas_left (new canvas% [parent selectPanel_left]
                                        [paint-callback drawSelect_left]))
 
 (define selectCanvas_right (new canvas% [parent selectPanel_right]
                                         [paint-callback drawSelect_right]))
+
+
+;----METHODS----;
+
 
 ; Changes screen to Arcadia Bay
 (define (toArcadiaBay)
@@ -142,19 +164,21 @@
   (send customCityScreen show #t))
 
 
-; To Arcadia Bay button
+;----UI ELEMENTS----;
+
 (new button% [parent selectPanel_left]
              [label (bitmap-scale arcadiabayButtonIcon 0.54)]
              [callback (lambda (button event)
                          (toArcadiaBay))])
 
-; To Custom City button
 (new button% [parent selectPanel_right]
              [label (bitmap-scale customcityButtonIcon 0.6)]
              [callback (lambda (button event)
                          (toCustomCity))])
 
+
 ;-------------------------Arcadia Bay-------------------------;
+
 
 ;----VARIABLES FOR INITIALIZATION----;
 
@@ -170,13 +194,14 @@
                                     ("beach/frank" "water tower" "15" #t)
                                     ("water tower" "the junkyard" "5" #t)
                                     ("the junkyard" "junkyard (parking)" "5" #t)
+                                    ("junkyard (parking)" "wooded area" "35" #f)
                                     ("water tower" "jefferson" "10" #t)
                                     ("jefferson" "chuz" "5" #t)
                                     ("chuz" "church" "3" #t)
                                     ("church" "two whales diner" "2" #t)
                                     ("chuz" "price home" "8" #t)
-                                    ("price home" "ale" "6" #f)
-                                    ("ale" "parking lot" "10" #t)
+                                    ("price home" "ale" "6" #t)
+                                    ("ale" "parking lot" "10" #f)
                                     ("parking lot" "blackwell academy" "5" #t)
                                     ("parking lot" "ocram" "100" #t)
                                     ("chuz" "chloe" "15" #t)
@@ -195,8 +220,6 @@
                                     ("marmota" "the barn" "70" #f)
                                     ("lumber mill" "general store" "16" #t)
                                     ))
-
-(define arcadiaBay_graph '())
 
 (define arcadiaBay_stringList '("the lighthouse" "beach/frank" "the junkyard" "water tower"
                               "junkyard (parking)" "wooded area" "jefferson" "church"
@@ -264,6 +287,38 @@
   (send arcadiaBayDC set-pen gold-pen)
   (send arcadiaBayDC draw-ellipse x y 3 3)))
 
+; Draws single route on Arcadia Bay
+(define (drawArcadiaBayRoute route isShortest)
+  (let* ([n1 (car route)]
+         [nRoute (cdr route)])
+  (cond ((null? nRoute) #f)
+        (else (let* ([n2 (car nRoute)])
+              (drawArcadiaBaySimpleConnection n1 n2 isShortest)
+              (drawArcadiaBayRoute (cdr route) isShortest))))))
+
+; Draws all found routes
+(define (drawArcadiaBayRoutes routeList isShortest)
+  (cond ((null? routeList) #f)
+        (else (drawArcadiaBayRoute (car routeList) isShortest)
+              (let* ([nextRoute (cdr routeList)])
+              (cond ((equal? (length nextRoute) 1) (drawArcadiaBayRoutes nextRoute #t))
+                    (else (drawArcadiaBayRoutes nextRoute #f)))))))
+
+; Draws connection between two nodes without weight or bidirectionality
+; Used to draw found routes
+(define (drawArcadiaBaySimpleConnection n1 n2 isShortest)
+  (let* ([p1 (getPoint_arcadiaBay n1)]
+         [p2 (getPoint_arcadiaBay n2)]
+         [p1x (send p1 get-x)]
+         [p1y (send p1 get-y)]
+         [p2x (send p2 get-x)]
+         [p2y (send p2 get-y)]) 
+  (send arcadiaBayDC set-pen green-pen)
+  (cond ((equal? isShortest #t) (and (send arcadiaBayDC set-pen brushedGold-pen)
+                                (send arcadiaBayDC set-brush gold-brush))))
+  (draw-arrow arcadiaBayDC (+ p1x 1.5) (+ p1y 1.5) (+ p2x 1.5) (+ p2y 1.5) 0 0)
+  (send arcadiaBayDC set-pen black-pen)))
+
 ; Gets point from string in Arcadia Bay
 (define (getPoint_arcadiaBay n)
   (getPoint_aux n arcadiaBay_nodeList))
@@ -279,7 +334,20 @@
               (set! arcadiaBay_nodeList (append arcadiaBay_nodeList (list (list currentString point))))
               (initializeArcadiaBayNodeList (cdr stringList) (cdr coordList))))))
 
-; Redraws connection between two graphical nodes
+; Organizes data for path drawing on ArcadiaBay
+(define (pathHelperArcadiaBay)
+  (let* ([origin (send routeOrigin_entry get-value)]
+         [destination (send routeDestination_entry get-value)]
+         [path (reverse (get-path origin destination arcadia-graph))])
+  (drawArcadiaBayRoutes path #f)))
+
+; Redraws Arcadia Bay
+(define (redrawArcadiaBay)
+  (send arcadiaBayDC draw-bitmap (bitmap-scale arcadiabay_map 0.25) 0 0)
+  (drawArcadiaBayNodes arcadiaBay_nodeList)
+  (drawArcadiaBayConnections arcadiaBay_connectionList))
+
+; Redraws connection between two graphical nodes in Arcadia Bay
 (define (redrawArcadiaBayConnection n1 n2 weight isBidirectional)
   (let* ([p1 (getPoint_arcadiaBay n1)]
          [p2 (getPoint_arcadiaBay n2)]
@@ -299,8 +367,6 @@
   (send arcadiaBayDC draw-text weight (- midX 5) (- midY 5))
   (send arcadiaBayDC set-text-foreground "black")))
 
-
-
 ;----UI ELEMENTS----;
 
 (define routeOrigin_entry (new text-field%
@@ -316,7 +382,10 @@
 (new button% [parent arcadiaBayScreen]
              [label "Calculate"]
              [callback (lambda (button event)
-                         (+ 2 2))])
+                         (redrawArcadiaBay)
+                         (pathHelperArcadiaBay)
+                         (send routeOrigin_entry set-value "")
+                         (send routeDestination_entry set-value ""))])
 
 ;-------------------------Custom City-------------------------;
 
@@ -355,6 +424,13 @@
 
 ;----METHODS----;
 
+; Check if connection is repeated
+(define (checkRepeatedConnections n1 n2 list)
+  (cond ((null? list) #f)
+        (else (let* ([currentN1 (caar list)]
+                     [currentN2  (cadar list)])
+              (cond ((and (equal? n1 currentN1) (equal? n2 currentN2)) #t)
+                    (else (checkRepeatedConnections n1 n2 (cdr list))))))))
 
 ; Check if node number is repeated
 (define (checkRepeatedNodes n)
@@ -399,6 +475,7 @@
          [middlePoint (getMiddlePoint p1x p1y p2x p2y)]
          [midX (send middlePoint get-x)]
          [midY (send middlePoint get-y)])
+    (connect n1 n2 (string->number weight) isBidirectional)
     (set! connectionList (append connectionList (list (list n1 n2 weight isBidirectional))))
     (send customCityDC set-pen blue-pen)
     (send customCityDC set-brush blue-brush)
@@ -418,6 +495,7 @@
   (send customCityDC set-pen gold-pen)
   (send customCityDC draw-ellipse x y 10 10)
   (send customCityDC draw-text n x (- y 15))
+  (graph-maker n)
   (set! nodeList (append nodeList (list (list n point))))))
 
 ; Draws node in UI in specific position
@@ -441,7 +519,9 @@
 (define (drawRoutes routeList isShortest)
   (cond ((null? routeList) #f)
         (else (drawRoute (car routeList) isShortest)
-              (drawRoutes (cdr routeList) #f))))
+              (let* ([nextRoute (cdr routeList)])
+              (cond ((equal? (length nextRoute) 1) (drawRoutes nextRoute #t))
+                    (else (drawRoutes nextRoute #f)))))))
 
 ; Draws connection between two nodes without weight or bidirectionality
 ; Used to draw found routes
@@ -473,6 +553,13 @@
         ((equal? (car (car list)) n) (car (cdr (car list))))
         (else (getPoint_aux n (cdr list)))))
 
+; Organizes data for path drawing
+(define (pathHelper)
+  (let* ([origin (send connectOrigin_entry get-value)]
+         [destination (send connectDestination_entry get-value)]
+         [path (reverse (get-path origin destination custom-graph))])
+  (drawRoutes path #f)))
+
 ; Redraws connection between two graphical nodes
 (define (redrawConnection n1 n2 weight isBidirectional)
   (let* ([p1 (getPoint n1)]
@@ -492,7 +579,7 @@
   (send customCityDC draw-text weight (- midX 10) (- midY 10))
   (send customCityDC set-text-foreground "black")))
 
-; Redraws graph
+; Redraws custom graph
 (define (redrawGraph)
   (send customCityDC draw-bitmap (bitmap-scale customcity_map 0.25) 0 0)
   (drawAllNodes nodeList)
@@ -535,20 +622,25 @@
 (new button% [parent customCityScreen]
              [label "Connect"]
              [callback (lambda (button event)
-                       (drawConnection (send connectOrigin_entry get-value)
-                                       (send connectDestination_entry get-value)
-                                       (send connectWeight_entry get-value)
-                                       (send isBidirectional get-value))
+                       (let* ([origin (send connectOrigin_entry get-value)]
+                              [destination (send connectDestination_entry get-value)])
+                       (cond ((equal? (checkRepeatedConnections origin destination connectionList) #f) 
+                              (drawConnection origin
+                                              destination
+                                              (send connectWeight_entry get-value)
+                                              (send isBidirectional get-value))))
                        (send connectOrigin_entry set-value "")
                        (send connectDestination_entry set-value "")
                        (send connectWeight_entry set-value "")
-                       (send isBidirectional set-value #f))])
+                       (send isBidirectional set-value #f)))])
 
 (new button% [parent customCityScreen]
              [label "Find route"]
              [callback (lambda (button event)
                          (redrawGraph)
-                         (drawRoutes testRoute #t))])
+                         (pathHelper)
+                         (send connectOrigin_entry set-value "")
+                         (send connectDestination_entry set-value ""))])
 
 
 ;-------------------------General-------------------------;
@@ -603,5 +695,4 @@
 ;----ACTIONS----;
 
 
-;(showMenu #t)
-(send arcadiaBayScreen show #t)
+(showMenu #t)

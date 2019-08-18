@@ -67,7 +67,7 @@
 
 ;;------------------------------------------------------------------------------
 ;; (BFS-ALL start end graph)
-;; Search for a route by breadh search first
+;; Search for a route by breadth search first
 ;; * Based on book page 384
 > (define (BFS-ALL start end graph)
     (cond ((equal? start end)

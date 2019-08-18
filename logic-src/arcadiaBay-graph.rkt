@@ -128,7 +128,7 @@
       ("harbor"
         (
           ("butterfly cove" 6)
-          ("lumber mill" 8)"prescott estate" "6"
+          ("lumber mill" 8)
           ("gas station" 5)
         )
       )
