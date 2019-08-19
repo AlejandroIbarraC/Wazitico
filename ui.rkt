@@ -313,9 +313,10 @@
          [p1y (send p1 get-y)]
          [p2x (send p2 get-x)]
          [p2y (send p2 get-y)]) 
-  (send arcadiaBayDC set-pen green-pen)
-  (cond ((equal? isShortest #t) (and (send arcadiaBayDC set-pen brushedGold-pen)
-                                (send arcadiaBayDC set-brush gold-brush))))
+  (send arcadiaBayDC set-pen red-pen)
+  (send arcadiaBayDC set-brush red-brush)
+  (cond ((equal? isShortest #t) (and (send arcadiaBayDC set-pen green-pen)
+                                (send arcadiaBayDC set-brush green-brush))))
   (draw-arrow arcadiaBayDC (+ p1x 1.5) (+ p1y 1.5) (+ p2x 1.5) (+ p2y 1.5) 0 0)
   (send arcadiaBayDC set-pen black-pen)))
 
@@ -339,7 +340,8 @@
   (let* ([origin (send routeOrigin_entry get-value)]
          [destination (send routeDestination_entry get-value)]
          [path (reverse (get-path origin destination arcadia-graph))])
-  (drawArcadiaBayRoutes path #f)))
+  (drawArcadiaBayRoutes path #f)
+  (redrawArcadiaBayWeights arcadiaBay_connectionList)))
 
 ; Redraws Arcadia Bay
 (define (redrawArcadiaBay)
@@ -358,14 +360,30 @@
          [middlePoint (getMiddlePoint p1x p1y p2x p2y)]
          [midX (send middlePoint get-x)]
          [midY (send middlePoint get-y)])
-  (send arcadiaBayDC set-pen blue-pen_slim)
+  (send arcadiaBayDC set-pen brushedBlue-pen_slim)
   (draw-arrow arcadiaBayDC (+ p1x 1.5) (+ p1y 1.5) (+ p2x 1.5) (+ p2y 1.5) 0 0)
   (cond ((equal? isBidirectional #t) (draw-arrow arcadiaBayDC (+ p2x 1.5) (+ p2y 1.5) (+ p1x 1.5) (+ p1y 1.5) 0 0)))
   (send arcadiaBayDC set-pen black-pen)
-  (send arcadiaBayDC set-text-foreground "blue")
   (send arcadiaBayDC set-font (make-font #:size 6))
-  (send arcadiaBayDC draw-text weight (- midX 5) (- midY 5))
-  (send arcadiaBayDC set-text-foreground "black")))
+  (send arcadiaBayDC draw-text weight (- midX 5) (- midY 5))))
+
+; Redraws all weights in graph
+(define (redrawArcadiaBayWeights list)
+  (cond ((not (null? list))
+         (let* ([n1 (caar list)]
+                [n2 (cadar list)]
+                [weight (caddar list)]
+                [p1 (getPoint_arcadiaBay n1)]
+                [p2 (getPoint_arcadiaBay n2)]
+                [p1x (send p1 get-x)]
+                [p1y (send p1 get-y)]
+                [p2x (send p2 get-x)]
+                [p2y (send p2 get-y)]
+                [middlePoint (getMiddlePoint p1x p1y p2x p2y)]
+                [midX (send middlePoint get-x)]
+                [midY (send middlePoint get-y)])
+           (send arcadiaBayDC draw-text weight (- midX 5) (- midY 5))
+           (redrawArcadiaBayWeights (cdr list))))))
 
 ;----UI ELEMENTS----;
 
@@ -395,7 +413,6 @@
 
 (define nodeList '())
 (define connectionList '())
-(define testRoute '(("1" "2" "3") ("1" "4" "3")))
 (define customCityGraph '())
 
 ; Custom City screen and panel
@@ -477,13 +494,13 @@
          [midY (send middlePoint get-y)])
     (connect n1 n2 (string->number weight) isBidirectional)
     (set! connectionList (append connectionList (list (list n1 n2 weight isBidirectional))))
-    (send customCityDC set-pen blue-pen)
+    (send customCityDC set-pen brushedBlue-pen_slim)
     (send customCityDC set-brush blue-brush)
-    (draw-arrow customCityDC (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5) 0 0)
-    (cond ((equal? isBidirectional #t) (draw-arrow customCityDC (+ p2x 5) (+ p2y 5) (+ p1x 5) (+ p1y 5) 0 0)))
+    (draw-arrow customCityDC (+ p1x 1.5) (+ p1y 1.5) (+ p2x 1.5) (+ p2y 1.5) 0 0)
+    (cond ((equal? isBidirectional #t) (draw-arrow customCityDC (+ p2x 1.5) (+ p2y 1.5) (+ p1x 1.5) (+ p1y 1.5) 0 0)))
     (send customCityDC set-pen black-pen)
-    (send customCityDC set-text-foreground "blue")
-    (send customCityDC draw-text weight (- midX 10) (- midY 10))
+    (send customCityDC set-text-foreground (make-object color% 205 60 236))
+    (send customCityDC draw-text weight (- midX 5) (- midY 5))
     (send customCityDC set-text-foreground "black")))
 
 ; Draws node in UI (ADD NODE TO GRAPH)
@@ -493,7 +510,8 @@
          [point (make-object point% x y)])
   (send customCityDC set-brush gold-brush)
   (send customCityDC set-pen gold-pen)
-  (send customCityDC draw-ellipse x y 10 10)
+  (send customCityDC draw-ellipse x y 3 3)
+  (send customCityDC set-font (make-font #:size 8))
   (send customCityDC draw-text n x (- y 15))
   (graph-maker n)
   (set! nodeList (append nodeList (list (list n point))))))
@@ -503,7 +521,7 @@
   (let* ([point (make-object point% x y)])
   (send customCityDC set-brush gold-brush)
   (send customCityDC set-pen gold-pen)
-  (send customCityDC draw-ellipse x y 10 10)
+  (send customCityDC draw-ellipse x y 3 3)
   (send customCityDC draw-text n x (- y 15))))
 
 ; Draws single route
@@ -532,10 +550,10 @@
          [p1y (send p1 get-y)]
          [p2x (send p2 get-x)]
          [p2y (send p2 get-y)]) 
-  (send customCityDC set-pen green-pen)
-  (cond ((equal? isShortest #t) (and (send customCityDC set-pen brushedGold-pen)
-                                (send customCityDC set-brush gold-brush))))
-  (draw-arrow customCityDC (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5) 0 0)
+  (send customCityDC set-pen red-pen)
+  (cond ((equal? isShortest #t) (and (send customCityDC set-pen green-pen)
+                                     (send customCityDC set-brush green-brush))))
+  (draw-arrow customCityDC (+ p1x 1.5) (+ p1y 1.5) (+ p2x 1.5) (+ p2y 1.5) 0 0)
   (send customCityDC set-pen black-pen)))
 
 ; Gets point% object of middle point
@@ -558,7 +576,10 @@
   (let* ([origin (send connectOrigin_entry get-value)]
          [destination (send connectDestination_entry get-value)]
          [path (reverse (get-path origin destination custom-graph))])
-  (drawRoutes path #f)))
+  (cond ((equal? (length path) 1)
+         (drawRoutes path #t))
+        (else (drawRoutes path #f)))
+  (redrawWeights connectionList)))
 
 ; Redraws connection between two graphical nodes
 (define (redrawConnection n1 n2 weight isBidirectional)
@@ -571,12 +592,12 @@
          [middlePoint (getMiddlePoint p1x p1y p2x p2y)]
          [midX (send middlePoint get-x)]
          [midY (send middlePoint get-y)])
-  (send customCityDC set-pen blue-pen)
-  (draw-arrow customCityDC (+ p1x 5) (+ p1y 5) (+ p2x 5) (+ p2y 5) 0 0)
-  (cond ((equal? isBidirectional #t) (draw-arrow customCityDC (+ p2x 5) (+ p2y 5) (+ p1x 5) (+ p1y 5) 0 0)))
+  (send customCityDC set-pen brushedBlue-pen_slim)
+  (draw-arrow customCityDC (+ p1x 1.5) (+ p1y 1.5) (+ p2x 1.5) (+ p2y 1.5) 0 0)
+  (cond ((equal? isBidirectional #t) (draw-arrow customCityDC (+ p2x 1.5) (+ p2y 1.5) (+ p1x 1.5) (+ p1y 1.5) 0 0)))
   (send customCityDC set-pen black-pen)
-  (send customCityDC set-text-foreground "blue")
-  (send customCityDC draw-text weight (- midX 10) (- midY 10))
+  (send customCityDC set-text-foreground (make-object color% 205 60 236))
+  (send customCityDC draw-text weight (- midX 5) (- midY 5))
   (send customCityDC set-text-foreground "black")))
 
 ; Redraws custom graph
@@ -585,12 +606,42 @@
   (drawAllNodes nodeList)
   (drawAllConnections connectionList))
 
+; Redraws all node names in custom graph
+(define (redrawNodeNames list)
+  (cond ((not (null? list))
+         (let* ([name (caar list)]
+                [currentPoint (cadar nodeList)]
+                [currentX (send currentPoint get-x)]
+                [currentY (send currentPoint get-y)])
+           (send customCityDC draw-text name currentX (- currentY 15))
+           (redrawNodeNames (cdr list))))))
+
+
+; Redraws all weights in custom graph
+(define (redrawWeights list)
+  (cond ((not (null? list))
+         (let* ([n1 (caar list)]
+                [n2 (cadar list)]
+                [weight (caddar list)]
+                [p1 (getPoint n1)]
+                [p2 (getPoint n2)]
+                [p1x (send p1 get-x)]
+                [p1y (send p1 get-y)]
+                [p2x (send p2 get-x)]
+                [p2y (send p2 get-y)]
+                [middlePoint (getMiddlePoint p1x p1y p2x p2y)]
+                [midX (send middlePoint get-x)]
+                [midY (send middlePoint get-y)])
+           (send customCityDC set-text-foreground (make-object color% 205 60 236))
+           (send customCityDC draw-text weight (- midX 5) (- midY 5))
+           (redrawWeights (cdr list))))))
+
 
 ;----UI ELEMENTS----;
 
 
 (define addNode_entry (new text-field%
-                      (label "Node number")
+                      (label "Node name")
                       (parent customCityScreen)
                       (init-value "")))
 
@@ -661,17 +712,22 @@
 (define blue-pen
   (new pen%
        [color "blue"]
-       [width 3]))
+       [width 2]))
 
 (define blue-pen_slim
   (new pen%
        [color "blue"]
        [width 1]))
 
-(define brushedGold-pen
+(define brushedBlue-pen
   (new pen%
        [color (make-object color% 48 91 149)]
        [width 3]))
+
+(define brushedBlue-pen_slim
+  (new pen%
+       [color (make-object color% 48 91 149)]
+       [width 1]))
 
 (define gold-brush
   (new brush%
@@ -682,10 +738,23 @@
        [color "gold"]
        [width 3]))
 
+(define green-brush
+  (new brush%
+       [color (make-object color% 40 70 50)]))
+
 (define green-pen
   (new pen%
-       [color (make-object color% 163 227 142)]
+       [color (make-object color% 40 70 50)]
+       [width 3]))
+
+(define red-pen
+  (new pen%
+       [color (make-object color% 200 64 52)]
        [width 2]))
+
+(define red-brush
+  (new brush%
+       [color (make-object color% 200 64 52)]))
 
 (define transparent-brush
   (new brush%
