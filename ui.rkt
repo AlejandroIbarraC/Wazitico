@@ -12,7 +12,7 @@
 ; Load images
 (define arcadiabayButtonIcon (make-object bitmap% "assets/arcadiabay_button.png"))
 (define arcadiabay_map (make-object bitmap% "assets/maps/arcadiabay_map.png"))
-(define background (make-object bitmap% "assets/background.png"))
+(define background (make-object bitmap% "assets/background_trash.png"))
 (define customcityButtonIcon (make-object bitmap% "assets/customcity_button.png"))
 (define customcity_map (make-object bitmap% "assets/maps/customcity_map.png"))
 (define logo_namePic (make-object bitmap% "assets/logo_name.png"))
