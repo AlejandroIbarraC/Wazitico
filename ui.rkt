@@ -562,8 +562,8 @@
 
 ; Draws node in UI (ADD NODE TO GRAPH)
 (define (drawNode n)
-  (let* ([x (random 15 480)]
-         [y (random 70 380)]
+  (let* ([x (random 130 480)]
+         [y (random 15 380)]
          [point (make-object point% x y)])
   (send customCityDC set-brush gold-brush)
   (send customCityDC set-pen gold-pen)
