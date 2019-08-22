@@ -1,10 +1,10 @@
-# CE3104 - Wazecheme
+# CE3104 - Wazitico
 <p align=justify>First course project (CE3104) 'Languages, Compilers and interpreters' focused on the functional programming paradigm.</p>
 
-<p align=center><img src="https://res.cloudinary.com/estalvgs1999/image/upload/v1565472855/CE3104/Captura_de_pantalla_de_2019-08-10_15-28-06_emgk4c.png" heigth="100"></p>
+<p align=center><img src="https://github.com/AlejandroIbarraC/Wazitico/blob/master/docs/tech-doc/imgs-src/wazitico-logo" heigth="100"></p>
 
 ***
-# Waze-cheme
+# Wazi-tico
 <p align="left">
   <img
        src="https://camo.githubusercontent.com/a3469255f3fcdead1593919251ab6f438744e9be/68747470733a2f2f63692e6170707665796f722e636f6d2f6170692f70726f6a656374732f7374617475732f346f3338706c743078626f31756263382f6272616e63682f6d61737465723f7376673d74727565">
@@ -18,12 +18,12 @@
 <p align=justify>This project aims to implement a mixed graph that simulates the popular waze app.
 Waze is a real-time traffic application and GPS-assisted navigation.</p>
 
-<p align=justify>What's so cool about Wazescheme?</p>
+<p align=justify>What's so cool about Wazitico?</p>
 
 * It offers you a map with multiple locations and roads.
 * The application presents whether the roads are one way or both.
 * You can enter your initial location and your destination, and you will instantly have the best routes to arrive!
-* Find the shortest route to your destination with waze scheme!
+* Find the shortest route to your destination with wazitico!
 
 
 ## Getting Started
@@ -37,9 +37,9 @@ Waze is a real-time traffic application and GPS-assisted navigation.</p>
 5. Change the current working directory to the location where you want the cloned directory to be made.
 6. Type 'git clone', and then paste the URL that you copied in Step 2.
 
-   ```$ git clone https://github.com/AlejandroIbarraC/Wazecheme.git```
+   ```$ git clone https://github.com/AlejandroIbarraC/Wazitico.git```
 
-7. Press Enter. Your local clone will be created for [CE3104-Wazecheme](https://github.com/AlejandroIbarraC/Wazecheme.git).
+7. Press Enter. Your local clone will be created for [CE3104-Wazitico](https://github.com/AlejandroIbarraC/Wazecheme.git).
 8. Now you can access the examples contained in this repository; but remember to be aware because I am constantly uploading new material.
 
 ### Prerequisites
@@ -83,5 +83,5 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ***
 <p align="center">
-<img src="https://res.cloudinary.com/estalvgs1999/image/upload/v1565472855/CE3104/Captura_de_pantalla_de_2019-08-10_15-28-06_emgk4c.png" width="200"/>
+<img src="https://github.com/AlejandroIbarraC/Wazitico/blob/master/docs/tech-doc/imgs-src/wazitico-logo" width="200"/>
 </p>
