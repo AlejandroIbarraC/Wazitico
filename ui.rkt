@@ -160,7 +160,8 @@
 ; Changes screen to Arcadia Bay
 (define (toArcadiaBay)
   (send citySelectScreen show #f)
-  (send arcadiaBayScreen show #t))
+  (send arcadiaBayScreen show #t)
+  (send arcadiaBayInfoScreen show #t))
 
 ; Changes screen to Custom City
 (define (toCustomCity)
@@ -235,11 +236,16 @@
 
 (define arcadiaBay_nodeList '())
 
-; Arcadia Bay screen
+; Arcadia Bay main screen and route info screen
 (define arcadiaBayScreen (new frame% [label "Wazecheme"]
                                      [width 1000]
                                      [height 800]
                                      [style '(no-resize-border)]))
+
+(define arcadiaBayInfoScreen (new frame% [label "Arcadia Bay Info"]
+                                         [width 100]
+                                         [height 800]
+                                         ))
 
 ; Arcadia Bay panel
 (define arcadiaBayPanel (new panel% [parent arcadiaBayScreen]
@@ -344,10 +350,15 @@
 (define (pathHelperArcadiaBay)
   (let* ([origin (send routeOrigin_entry get-value)]
          [destination (send routeDestination_entry get-value)]
-         [path (reverse (get-path origin destination arcadia-graph))])
-  (drawArcadiaBayRoutes path #f)
-  (redrawArcadiaBayWeights arcadiaBay_connectionList)))
-
+         [path (get-path origin destination arcadia-graph)]
+         [reversePath (reverse path)])
+  (cond ((equal? (null? reversePath) #f)
+        (drawArcadiaBayRoutes reversePath #f)
+        (redrawArcadiaBayWeights arcadiaBay_connectionList)
+        (updateArcadiaRoutes path)
+        (updateArcadiaStatus (string-append "Shortest path: " (number->string (path-weight (car reversePath) arcadia-graph)))))
+    (else (updateArcadiaStatus "No path found.")))))
+  
 ; Redraws Arcadia Bay
 (define (redrawArcadiaBay)
   (send arcadiaBayDC draw-bitmap (bitmap-scale arcadiabay_map 0.25) 0 0)
@@ -390,25 +401,54 @@
            (send arcadiaBayDC draw-text weight (- midX 5) (- midY 5))
            (redrawArcadiaBayWeights (cdr list))))))
 
+; Update all route box in Arcadia Bay
+(define (updateArcadiaRoutes path)
+  (send routeBoxArcadiaBay clear)
+  (updateArcadiaRoutes_aux path))
+
+(define (updateArcadiaRoutes_aux path)
+  (cond ((null? path) #f)
+        (else (send routeBoxArcadiaBay append (~a (car path)))
+              (updateArcadiaRoutes_aux (cdr path)))))
+
+; Updates status label in Arcadia Bay
+(define (updateArcadiaStatus nStatus)
+  (send arcadiaStatusLabel set-label nStatus))
+
 ;----UI ELEMENTS----;
+
+(define arcadiaStatusLabel (new message%
+                           [label "Welcome to Arcadia Bay!"]
+                           [parent arcadiaBayInfoScreen]
+                           [vert-margin 10]))
 
 (define routeOrigin_entry (new text-field%
                           (label "Origin")
-                          (parent arcadiaBayScreen)
-                          (init-value "")))
+                          (parent arcadiaBayInfoScreen)
+                          (init-value "")
+                          (vert-margin 10)))
 
 (define routeDestination_entry (new text-field%
                                (label "Destination")
-                               (parent arcadiaBayScreen)
-                               (init-value "")))
+                               (parent arcadiaBayInfoScreen)
+                               (init-value "")
+                               (vert-margin 10)))
 
-(new button% [parent arcadiaBayScreen]
-             [label "Calculate"]
+
+(new button% [parent arcadiaBayInfoScreen]
+             [label findRouteButtonIcon]
              [callback (lambda (button event)
                          (redrawArcadiaBay)
                          (pathHelperArcadiaBay)
                          (send routeOrigin_entry set-value "")
-                         (send routeDestination_entry set-value ""))])
+                         (send routeDestination_entry set-value ""))]
+             [vert-margin 10])
+
+(define routeBoxArcadiaBay (new list-box%
+                           [parent arcadiaBayInfoScreen]
+                           [choices '()]
+                           [label "Routes"]
+                           [vert-margin 10]))
 
 ;-------------------------Custom City-------------------------;
 
@@ -427,8 +467,7 @@
 
 (define customCityScreenControls (new frame% [label "Control Panel"]
                                              [width 100]
-                                             [height 800]
-                                             [style '(no-resize-border)]))
+                                             [height 800]))
 
 (define customCityPanel (new panel% [parent customCityScreen]
                                     [border 0]
@@ -524,7 +563,7 @@
 ; Draws node in UI (ADD NODE TO GRAPH)
 (define (drawNode n)
   (let* ([x (random 15 480)]
-         [y (random 15 380)]
+         [y (random 70 380)]
          [point (make-object point% x y)])
   (send customCityDC set-brush gold-brush)
   (send customCityDC set-pen gold-pen)
@@ -596,7 +635,7 @@
          [path (get-path origin destination custom-graph)]
          [reversePath (reverse path)])
   (updateRoutes reversePath)
-  (updateStatus (string-append "Shortest path weight: " (number->string (path-weight (car path) custom-graph))))
+  (updateStatus (string-append "Shortest path:" (number->string (path-weight (car path) custom-graph))))
   (cond ((equal? (length reversePath) 1)
          (drawRoutes reversePath #t))
         (else (drawRoutes reversePath #f)))
@@ -708,7 +747,7 @@
                         (value #f)))
 
 (define statusLabel (new message%
-                         [label "You've met a terrible fate, haven't you?"]
+                         [label "Welcome to Wazitico!"]
                          [parent customCityScreenControls]))
 
 (new button% [parent customCityScreenControls]
