@@ -10,10 +10,13 @@
 ;----ACTIONS----;
 
 ; Load images
+(define addButtonIcon (make-object bitmap% "assets/add_button.png"))
 (define arcadiabayButtonIcon (make-object bitmap% "assets/arcadiabay_button.png"))
 (define arcadiabay_map (make-object bitmap% "assets/maps/arcadiabay_map.png"))
 (define background (make-object bitmap% "assets/background_trash.png"))
+(define connectButtonIcon (make-object bitmap% "assets/connect_button.png"))
 (define customcityButtonIcon (make-object bitmap% "assets/customcity_button.png"))
+(define findRouteButtonIcon (make-object bitmap% "assets/findroute_button.png"))
 (define customcity_map (make-object bitmap% "assets/maps/customcity_map.png"))
 (define logo_namePic (make-object bitmap% "assets/logo_name.png"))
 (define logoPic (make-object bitmap% "assets/logo.png"))
@@ -174,7 +177,8 @@
 (new button% [parent selectPanel_right]
              [label (bitmap-scale customcityButtonIcon 0.6)]
              [callback (lambda (button event)
-                         (toCustomCity))])
+                         (toCustomCity)
+                         (showCustomCityControls))])
 
 
 ;-------------------------Arcadia Bay-------------------------;
@@ -410,7 +414,6 @@
 
 ;----VARIABLES FOR INITIALIZATION----;
 
-
 (define nodeList '())
 (define connectionList '())
 (define customCityGraph '())
@@ -420,6 +423,11 @@
                                      [width 1000]
                                      [height 800]
                                      [style '(no-resize-border)]))
+
+(define customCityScreenControls (new frame% [label "Control Panel"]
+                                             [width 100]
+                                             [height 800]
+                                             [style '(no-resize-border)]))
 
 (define customCityPanel (new panel% [parent customCityScreen]
                                     [border 0]
@@ -446,7 +454,7 @@
   (cond ((null? list) #f)
         (else (let* ([currentN1 (caar list)]
                      [currentN2  (cadar list)])
-              (cond ((and (equal? n1 currentN1) (equal? n2 currentN2)) #t)
+              (cond ((and (equal? n1 currentN1) (equal? n2 currentN2)) (updateStatus "Connection is already made") #t)
                     (else (checkRepeatedConnections n1 n2 (cdr list))))))))
 
 ; Check if node number is repeated
@@ -459,6 +467,11 @@
         ((null? list) (drawNode n))
         (else (cond ((equal? (car (car list)) n) #f)
                     (else (checkRepeatedNodes_aux n (cdr list)))))))
+
+; Checks if weight is valid
+(define (checkWeight weight)
+  (cond ((number? (string->number weight)) #t)
+        (else (updateStatus "Weight is not valid") #f)))
 
 ; Draws all connections in list
 (define (drawAllConnections list)
@@ -484,29 +497,33 @@
 ; Draws connection between two graphical nodes (CONNECT NODES IN GRAPH)
 (define (drawConnection n1 n2 weight isBidirectional)
   (let* ([p1 (getPoint n1)]
-         [p2 (getPoint n2)]
-         [p1x (send p1 get-x)]
-         [p1y (send p1 get-y)]
-         [p2x (send p2 get-x)]
-         [p2y (send p2 get-y)]
-         [middlePoint (getMiddlePoint p1x p1y p2x p2y)]
-         [midX (send middlePoint get-x)]
-         [midY (send middlePoint get-y)])
-    (connect n1 n2 (string->number weight) isBidirectional)
-    (set! connectionList (append connectionList (list (list n1 n2 weight isBidirectional))))
-    (send customCityDC set-pen brushedBlue-pen_slim)
-    (send customCityDC set-brush blue-brush)
-    (draw-arrow customCityDC (+ p1x 1.5) (+ p1y 1.5) (+ p2x 1.5) (+ p2y 1.5) 0 0)
-    (cond ((equal? isBidirectional #t) (draw-arrow customCityDC (+ p2x 1.5) (+ p2y 1.5) (+ p1x 1.5) (+ p1y 1.5) 0 0)))
-    (send customCityDC set-pen black-pen)
-    (send customCityDC set-text-foreground (make-object color% 205 60 236))
-    (send customCityDC draw-text weight (- midX 5) (- midY 5))
-    (send customCityDC set-text-foreground "black")))
+         [p2 (getPoint n2)])
+  (cond ((equal? p1 #f) (updateStatus "Origin node doesn't exist"))
+        ((equal? p2 #f) (updateStatus "Destination node doesn't exist"))
+        (else (let* ([p1x (send p1 get-x)]
+                       [p1y (send p1 get-y)]
+                       [p2x (send p2 get-x)]
+                       [p2y (send p2 get-y)]
+                       [middlePoint (getMiddlePoint p1x p1y p2x p2y)]
+                       [midX (send middlePoint get-x)]
+                       [midY (send middlePoint get-y)])
+                  ; Connect in graph
+                  (connect n1 n2 (string->number weight) isBidirectional)
+                  (set! connectionList (append connectionList (list (list n1 n2 weight isBidirectional))))
+                  ; Draw arrow from p1 to p2
+                  (send customCityDC set-pen brushedBlue-pen_slim)
+                  (send customCityDC set-brush blue-brush)
+                  (draw-arrow customCityDC (+ p1x 1.5) (+ p1y 1.5) (+ p2x 1.5) (+ p2y 1.5) 0 0)
+                  (cond ((equal? isBidirectional #t) (draw-arrow customCityDC (+ p2x 1.5) (+ p2y 1.5) (+ p1x 1.5) (+ p1y 1.5) 0 0)))
+                  (send customCityDC set-pen black-pen)
+                  (send customCityDC set-text-foreground (make-object color% 205 60 236))
+                  (send customCityDC draw-text weight (- midX 5) (- midY 5))
+                  (send customCityDC set-text-foreground "black"))))))
 
 ; Draws node in UI (ADD NODE TO GRAPH)
 (define (drawNode n)
-  (let* ([x (random 15 470)]
-         [y (random 15 260)]
+  (let* ([x (random 15 480)]
+         [y (random 15 380)]
          [point (make-object point% x y)])
   (send customCityDC set-brush gold-brush)
   (send customCityDC set-pen gold-pen)
@@ -575,10 +592,13 @@
 (define (pathHelper)
   (let* ([origin (send connectOrigin_entry get-value)]
          [destination (send connectDestination_entry get-value)]
-         [path (reverse (get-path origin destination custom-graph))])
-  (cond ((equal? (length path) 1)
-         (drawRoutes path #t))
-        (else (drawRoutes path #f)))
+         [path (get-path origin destination custom-graph)]
+         [reversePath (reverse path)])
+  (updateRoutes reversePath)
+  (updateStatus (string-append "Shortest path weight: " (number->string (path-weight (car path) custom-graph))))
+  (cond ((equal? (length reversePath) 1)
+         (drawRoutes reversePath #t))
+        (else (drawRoutes reversePath #f)))
   (redrawWeights connectionList)))
 
 ; Redraws connection between two graphical nodes
@@ -636,62 +656,94 @@
            (send customCityDC draw-text weight (- midX 5) (- midY 5))
            (redrawWeights (cdr list))))))
 
+(define (showCustomCityControls)
+  (send customCityScreenControls show #t))
+
+(define (updateRoutes path)
+  (send routeBox clear)
+  (updateRoutes_aux path))
+
+(define (updateRoutes_aux path)
+  (cond ((null? path) #f)
+        (else (send routeBox append (~a (car path)))
+              (updateRoutes_aux (cdr path)))))
+  
+(define (updateStatus nStatus)
+  (send statusLabel set-label nStatus))
+
 
 ;----UI ELEMENTS----;
 
 
 (define addNode_entry (new text-field%
                       (label "Node name")
-                      (parent customCityScreen)
+                      (parent customCityScreenControls)
                       (init-value "")))
 
-(new button% [parent customCityScreen]
-             [label "Add Node"]
+(new button% [parent customCityScreenControls]
+             [label addButtonIcon]
              [callback (lambda (button event)
-                       (checkRepeatedNodes (send addNode_entry get-value)))])
+                        (let* ([status (checkRepeatedNodes (send addNode_entry get-value))])
+                          (cond ((equal? status #f) (updateStatus "Node name is already taken")))))])
 
 (define connectOrigin_entry (new text-field%
                             (label "Origin")
-                            (parent customCityScreen)
+                            (parent customCityScreenControls)
                             (init-value "")))
 
 (define connectDestination_entry (new text-field%
                                  (label "Destination")
-                                 (parent customCityScreen)
+                                 (parent customCityScreenControls)
                                  (init-value "")))
 
 (define connectWeight_entry (new text-field%
                             (label "Weight/Distance")
-                            (parent customCityScreen)
+                            (parent customCityScreenControls)
                             (init-value "")))
 
 (define isBidirectional (new check-box%
-                        (parent customCityScreen)
+                        (parent customCityScreenControls)
                         (label "Bidirectional?")
                         (value #f)))
 
-(new button% [parent customCityScreen]
-             [label "Connect"]
+(define statusLabel (new message%
+                         [label "You've met a terrible fate, haven't you?"]
+                         [parent customCityScreenControls]))
+
+(new button% [parent customCityScreenControls]
+             [label connectButtonIcon]
              [callback (lambda (button event)
                        (let* ([origin (send connectOrigin_entry get-value)]
-                              [destination (send connectDestination_entry get-value)])
-                       (cond ((equal? (checkRepeatedConnections origin destination connectionList) #f) 
+                              [destination (send connectDestination_entry get-value)]
+                              [weight (send connectWeight_entry get-value)])
+                       (cond ((and (equal? (checkRepeatedConnections origin destination connectionList) #f)
+                                   (equal? (checkWeight weight) #t))
                               (drawConnection origin
                                               destination
-                                              (send connectWeight_entry get-value)
+                                              weight
                                               (send isBidirectional get-value))))
                        (send connectOrigin_entry set-value "")
                        (send connectDestination_entry set-value "")
                        (send connectWeight_entry set-value "")
                        (send isBidirectional set-value #f)))])
 
-(new button% [parent customCityScreen]
-             [label "Find route"]
+(new button% [parent customCityScreenControls]
+             [label findRouteButtonIcon]
              [callback (lambda (button event)
-                         (redrawGraph)
-                         (pathHelper)
-                         (send connectOrigin_entry set-value "")
-                         (send connectDestination_entry set-value ""))])
+                         (let* ([origin (send connectOrigin_entry get-value)]
+                              [destination (send connectDestination_entry get-value)])
+                           (cond ((or (equal? (checkRepeatedNodes origin) #f)
+                                      (equal? (checkRepeatedNodes destination) #f))
+                                  (updateStatus "Error. A node doesn't exist"))
+                           (else (redrawGraph)
+                                 (pathHelper)
+                                 (send connectOrigin_entry set-value "")
+                                 (send connectDestination_entry set-value "")))))])
+
+(define routeBox (new list-box%
+                         [parent customCityScreenControls]
+                         [choices '()]
+                         [label "Routes"]))
 
 
 ;-------------------------General-------------------------;
