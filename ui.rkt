@@ -16,6 +16,7 @@
 (define background (make-object bitmap% "assets/background_trash.png"))
 (define connectButtonIcon (make-object bitmap% "assets/connect_button.png"))
 (define customcityButtonIcon (make-object bitmap% "assets/customcity_button.png"))
+(define exportButtonIcon (make-object bitmap% "assets/export_button.png"))
 (define findRouteButtonIcon (make-object bitmap% "assets/findroute_button.png"))
 (define customcity_map (make-object bitmap% "assets/maps/customcity_map.png"))
 (define logo_namePic (make-object bitmap% "assets/logo_name.png"))
@@ -744,6 +745,12 @@
                          [parent customCityScreenControls]
                          [choices '()]
                          [label "Routes"]))
+
+(new button% [parent customCityScreenControls]
+             [label exportButtonIcon]
+             [callback (lambda (button event)
+                       (with-output-to-file "/Users/alejandro/Desktop/exported-graph.txt" #:exists 'replace
+                       (lambda () (display custom-graph))))])
 
 
 ;-------------------------General-------------------------;
